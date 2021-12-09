@@ -378,9 +378,9 @@ public class DownmgrNative : Singleton<DownmgrNative>
     /// </summary>
     /// <param name="unityWebRequest"></param>
     /// <returns></returns>
-    public bool DownSuccess(UnityWebRequest unityWebRequest)
+    public bool DownFailed(UnityWebRequest unityWebRequest)
     {
-        return unityWebRequest.isHttpError || unityWebRequest.isHttpError || unityWebRequest.downloadProgress < 1 || string.Equals(unityWebRequest.error , "Request aborted");
-
+        return unityWebRequest.isHttpError || unityWebRequest.isHttpError || unityWebRequest.downloadProgress < 1 || !string.Equals(unityWebRequest.error,null )
+            /* || string.Equals(unityWebRequest.error , "Request aborted") || string.Equals(unityWebRequest.error, "Cannot connect to destination host")*/;
     }
 }

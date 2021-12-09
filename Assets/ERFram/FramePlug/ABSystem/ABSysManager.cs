@@ -136,7 +136,7 @@ public class ABSysManager : Singleton<ABSysManager>
     /// <param name="str"></param>
     protected void CheckVerionLocalAndCacheOnLoad(UnityWebRequest unityWebRequest, string str)
     {
-        if (DownmgrNative.Instance.DownSuccess(unityWebRequest))
+        if (DownmgrNative.Instance.DownFailed(unityWebRequest))
         {
             //加载失败
             //TODO出提示重新来一遍
@@ -209,7 +209,7 @@ public class ABSysManager : Singleton<ABSysManager>
     /// <param name="str"></param>
     protected void CheckVersionWithRemoteOnLoad(UnityWebRequest unityWebRequest, string str)
     {
-        if (DownmgrNative.Instance.DownSuccess(unityWebRequest))
+        if (DownmgrNative.Instance.DownFailed(unityWebRequest))
         {
             //下载失败 当成没有更新直接进入游戏
             Debug.LogError("Download Remote VersionFile Failed");
@@ -369,7 +369,7 @@ public class ABSysManager : Singleton<ABSysManager>
     protected void DownABFileOnLoad(UnityWebRequest unityWebRequest, string str)
     {
         ABFileInfo aBFileInfo = ABFileInfoDic[str];
-        if (DownmgrNative.Instance.DownSuccess(unityWebRequest)) 
+        if (DownmgrNative.Instance.DownFailed(unityWebRequest)) 
         {
             DownAbFailEvnet(aBFileInfo, str);
             return;
