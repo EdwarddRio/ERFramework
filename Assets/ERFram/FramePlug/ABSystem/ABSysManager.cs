@@ -145,12 +145,13 @@ public class ABSysManager : Singleton<ABSysManager>
             return;
         }
         else
-        { 
+        {
             //data[]转换为string后  读取出的第一行版本号的 无法识别切割。。。去掉第一个字符虽然可以，但是以防万一还是保存到缓存区再读出来
             //XXX:查出是用utf-8保存的话会有一个乱码(红点)在最前面，但VerInfo保存时用ascll编码的话 就不会有。
             //VerInfo perVer = VerInfo.Read(string.Empty, System.Text.Encoding.UTF8.GetString(unityWebRequest.downloadHandler.data));
             //CheckVerionLocalAndCacheNext(perVer);
 
+            Debug.Log("Load StreamingAsset VersionFile Success");
 
             File.WriteAllBytes(Const.ABCachePath + Const.FILE_VERSION + Const.TempFileName, unityWebRequest.downloadHandler.data);
             VerInfo perVer = VerInfo.Read(Const.ABCachePath, true);

@@ -283,7 +283,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
     /// <param name="onLoad"></param>
     internal void LoadFromStreamingAssets(string path, string tag, Action<UnityWebRequest, string> onLoad)
     {
-        Load("file://" + Const.ABLoadPath +  path, path, tag, onLoad, null);
+        Load(Const.ABLoadPath +  path, path, tag, onLoad, null);
     }
     /// <summary>
     /// 从远程路径加载文件数据

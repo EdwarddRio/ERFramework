@@ -67,6 +67,7 @@ public class Const
             if (string.Equals(_ABCachePath, string.Empty))
             {
                 _ABCachePath = System.IO.Path.Combine(Application.persistentDataPath, "vercache") +"/";
+                GameUtility.CheckFileAndCreateDirWhenNeeded(_ABCachePath);
             }
             return _ABCachePath;
         }
@@ -75,11 +76,11 @@ public class Const
     /// ab包远程路径
     /// </summary>
 #if UNITY_IOS
-    private static string _ABRemotePath = "http://127.0.0.1/downfname=IOS/";
+    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/IOS/";
 #elif UNITY_ANDROID
-    private static string _ABRemotePath = "http://127.0.0.1/downfname=Android/";
+    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/Android/";
 #else
-    private static string _ABRemotePath = "http://127.0.0.1/downfname=Editor/";
+    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/Editor/";
 #endif
     public static string ABRemotePath
     {
