@@ -69,4 +69,4 @@ CheckDownPanel的显示功能
 
 ### Ver1.4:
 
-加入xlua热更新,UI部分改为热更新
+加入xlua\puerts热更新,UI部分改为热更新
