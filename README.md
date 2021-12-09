@@ -1,6 +1,5 @@
 # ERFramework
 一个游戏框架，目标是更新到模块化增加功能和加入xlua改UI为热更新
-
 资源加载框架参考:https://github.com/fenghaiyang1121/RFramework
 
 ##当前已完成功能：
