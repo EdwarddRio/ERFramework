@@ -76,11 +76,11 @@ public class Const
     /// ab包远程路径
     /// </summary>
 #if UNITY_IOS
-    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/IOS/";
+    private static string _ABRemotePath = "http://127.0.0.1/IOS/";
 #elif UNITY_ANDROID
-    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/Android/";
+    private static string _ABRemotePath = "http://127.0.0.1/Android/";
 #else
-    private static string _ABRemotePath = "http://bt.edwardrio.com:3001/Editor/";
+    private static string _ABRemotePath = "http://127.0.0.1/Editor/";
 #endif
     public static string ABRemotePath
     {
