@@ -1,0 +1,22 @@
+ManifestFileVersion: 0
+CRC: 3371923484
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: bca977bd1f343ca1132355f79fd6b253
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c4d5dee85f6c263eb0adbea350984ae1
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+- Class: 687078895
+  Script: {instanceID: 0}
+Assets:
+- Assets/GameData/UIAtlas/UIMain.spriteatlas
+- Assets/GameData/UIAtlas/UIGame.spriteatlas
+Dependencies:
+- D:/UnityProjects/ERFramework/Assets/../AssetBundle/Android/menupanel

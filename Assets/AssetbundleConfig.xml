@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AssetBundleConfig xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ABList Path="Assets/GameData/Prefabs/UGUI/Panel/CheckDownloadPanel.prefab" Crc="629135786" ABName="checkdownloadpanel" AssetName="CheckDownloadPanel.prefab" />
+  <ABList Path="Assets/GameData/Prefabs/UGUI/Panel/LoadingPanel.prefab" Crc="968375833" ABName="loadingpanel" AssetName="LoadingPanel.prefab" />
+  <ABList Path="Assets/GameData/Prefabs/UGUI/Panel/MenuPanel.prefab" Crc="2681775694" ABName="menupanel" AssetName="MenuPanel.prefab" />
+  <ABList Path="Assets/GameData/Shaders/ER_UnlitColor.shader" Crc="2210169161" ABName="shader" AssetName="ER_UnlitColor.shader" />
+  <ABList Path="Assets/GameData/Sounds/Unity.mp3" Crc="1792673139" ABName="sounds" AssetName="Unity.mp3" />
+  <ABList Path="Assets/GameData/Sounds/wuwangcao.mp3" Crc="271729458" ABName="sounds" AssetName="wuwangcao.mp3" />
+  <ABList Path="Assets/GameData/Tables/PlaneData.txt" Crc="2242406932" ABName="tables" AssetName="PlaneData.txt" />
+  <ABList Path="Assets/GameData/Prefabs/tree.prefab" Crc="2260352069" ABName="tree" AssetName="tree.prefab">
+    <ABDependce>shader</ABDependce>
+  </ABList>
+  <ABList Path="Assets/GameData/UIAtlas/UIGame.spriteatlas" Crc="2113416641" ABName="uiatlas" AssetName="UIGame.spriteatlas" />
+  <ABList Path="Assets/GameData/UIAtlas/UIMain.spriteatlas" Crc="1999546197" ABName="uiatlas" AssetName="UIMain.spriteatlas">
+    <ABDependce>menupanel</ABDependce>
+  </ABList>
+</AssetBundleConfig>

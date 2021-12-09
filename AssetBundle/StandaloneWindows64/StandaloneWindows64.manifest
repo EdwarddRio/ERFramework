@@ -1,0 +1,33 @@
+ManifestFileVersion: 0
+CRC: 12590236
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: menupanel
+      Dependencies: {}
+    Info_1:
+      Name: tables
+      Dependencies: {}
+    Info_2:
+      Name: assetbundleconfig
+      Dependencies: {}
+    Info_3:
+      Name: shader
+      Dependencies: {}
+    Info_4:
+      Name: sounds
+      Dependencies: {}
+    Info_5:
+      Name: loadingpanel
+      Dependencies: {}
+    Info_6:
+      Name: uiatlas
+      Dependencies:
+        Dependency_0: menupanel
+    Info_7:
+      Name: checkdownloadpanel
+      Dependencies: {}
+    Info_8:
+      Name: tree
+      Dependencies:
+        Dependency_0: shader

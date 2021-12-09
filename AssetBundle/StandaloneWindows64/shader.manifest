@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 3435350303
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: f0708f80c039de9c373dd777112dc29f
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 55d48f4ad9c3b13330b9eb5ee5686477
+HashAppended: 0
+ClassTypes:
+- Class: 48
+  Script: {instanceID: 0}
+Assets:
+- Assets/GameData/Shaders/ER_UnlitColor.shader
+Dependencies: []

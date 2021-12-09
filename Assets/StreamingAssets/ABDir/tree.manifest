@@ -1,0 +1,37 @@
+ManifestFileVersion: 0
+CRC: 553972282
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 1d09cc441ccb9b665141655ec21846cb
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 62c5fdb614490825da7f64ce4498e45c
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 74
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 066b4fdf2c430cf47b5cab25f17b77ab, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+Assets:
+- Assets/GameData/Prefabs/tree.prefab
+- Assets/GameData/Materials/tree.mat
+- Assets/GameData/Modle/tree.FBX
+Dependencies:
+- D:/UnityProjects/ERFramework/Assets/../AssetBundle/Android/shader

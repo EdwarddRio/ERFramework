@@ -1,0 +1,8 @@
+Shipid	描述	序号	模型	解锁方式：0=免费 1=金币 2=视频	解锁数量（车）	名字	等级	角标 0=无 1=Hot 2=New	技能	技能数值	推荐优先级
+ShipId	Decription	SortId	Model	CarLockType	CarLockNum	Name	Level	Cover	SkillType	SkillNum	RecPriority
+3001	灰色飞机	1	Ship01	2	1	Challenger	A	0	0	0	0
+3002	白飞机	2	Ship02	0	0	Quantum	S	2	0	0	0
+3003	飞机	3	Ship03	2	1	Batwing	B	0	0	0	0
+3004	飞机	4	Ship04	2	1	Royal	A	0	0	0	0
+3005	飞机	5	Ship05	2	1	Pretender	A	1	0	0	0
+3006	飞机	6	Ship06	2	1	Scorpion	S	2	0	0	0

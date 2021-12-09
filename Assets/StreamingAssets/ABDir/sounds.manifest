@@ -1,0 +1,17 @@
+ManifestFileVersion: 0
+CRC: 1149175731
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: f82b08d59e5e1935f321104ffc8e5058
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 3f7d0c5e0986ec71841622bcb2f9be1c
+HashAppended: 0
+ClassTypes:
+- Class: 83
+  Script: {instanceID: 0}
+Assets:
+- Assets/GameData/Sounds/wuwangcao.mp3
+- Assets/GameData/Sounds/Unity.mp3
+Dependencies: []
