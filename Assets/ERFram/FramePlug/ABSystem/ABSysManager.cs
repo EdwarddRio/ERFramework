@@ -46,6 +46,8 @@ public class ABSysManager : Singleton<ABSysManager>
     //检查下载界面的ab名称
     protected const string m_checkdownloadpanel = "checkdownloadpanel";
 
+    protected VerInfo remoteVer = null;
+
     /// <summary>
     /// 初始化
     /// </summary>
@@ -69,6 +71,18 @@ public class ABSysManager : Singleton<ABSysManager>
             ABFileInfo aBFileInfo = abFileDownloadList[i];
             if (aBFileInfo.m_FileLength == 0 || string.Equals(aBFileInfo.m_Hash, m_inCacheTrue))
             {
+                //从远端版本文件中读取出信息 然后赋值hash
+                string remoteInfo = null;
+                if (remoteVer.filehash.TryGetValue(aBFileInfo.m_Name,out remoteInfo) && remoteInfo!=null)
+                {
+                    string[] infos = remoteInfo.Split(m_separator);
+                    aBFileInfo.m_Hash = infos[0];
+                }
+                else
+                {
+                    Debug.LogError("ReDownABEvent=>Read Hash from remoteInfo failed, Name:" + aBFileInfo.m_Name);
+                }
+
                 ablistTemp.Add(aBFileInfo);
             }
             else
@@ -216,7 +230,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 (unityWebRequest.downloadHandler as DownloadTaskHandler).Dispose();
             }
 
-            VerInfo remoteVer = VerInfo.Read(Const.ABCachePath, true);
+            remoteVer = VerInfo.Read(Const.ABCachePath, true);
             Const.GAMERemote_VERSION = remoteVer.ver;
             //对比哪些文件需要下载
             CheckNeedDownFiles(remoteVer);
@@ -438,6 +452,9 @@ public class ABSysManager : Singleton<ABSysManager>
             return;
         }
 #endif
+        //清空远端版本文件信息
+        remoteVer = null;
+
         //如果有更新checkdown的话 释放掉资源后把名字改回去
         ABFileInfo aBFileInfo = ABFileInfoDic[m_checkdownloadpanel];
         if (aBFileInfo.m_Upgrade )

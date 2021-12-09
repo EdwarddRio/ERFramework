@@ -435,7 +435,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
         mFileStream.Write(data, 0, dataLength);
         CurFileSize += (uint)dataLength;
 
-        //GameLog.Debug("Curfile Size Datalength " + CurFileSize + "/" + TotalFileSize + " path " + mPath);
+        //Debug.LogError("Curfile Size Datalength " + CurFileSize + "/" + TotalFileSize + " path " + mPath);
         //统计下载速度
         if (UnityEngine.Time.time - LastTime >= 1.0f)
         {
