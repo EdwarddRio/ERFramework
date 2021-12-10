@@ -259,7 +259,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
     public DownloadTaskHandler(string path, UnityWebRequest request) : base(new byte[1024 * 200])
     {
         mPath = path;
-        string tempPath = mPath + ".temp";
+        string tempPath = mPath + Const.TempSuffix;
 
         string outpath = System.IO.Path.GetDirectoryName(tempPath);
 
@@ -327,7 +327,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
             mFileStream.Dispose();
             mFileStream = null;
         }
-        string tempFilePath = mPath + ".temp";
+        string tempFilePath = mPath +Const.TempSuffix;
         if (File.Exists(tempFilePath))
         {
             File.Delete(tempFilePath);
@@ -336,7 +336,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
 
     private void SaveTemp()
     {
-        string tempFilePath = mPath + ".temp";
+        string tempFilePath = mPath + Const.TempSuffix;
         if (File.Exists(tempFilePath))
         {
             //if (File.Exists(mPath))

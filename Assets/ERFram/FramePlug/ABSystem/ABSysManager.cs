@@ -45,9 +45,10 @@ public class ABSysManager : Singleton<ABSysManager>
     protected const string m_manifestExten = ".manifest";
     //检查下载界面的ab名称
     protected const string m_checkdownloadpanel = "checkdownloadpanel";
-
+    //远程版本信息
     protected VerInfo remoteVer = null;
-
+    //是否已经保存过缓存区内的版本文件， 在没保存之前突然退出游戏的话保存下文件
+    protected bool m_isSaveCacheVerInfo = false;
     /// <summary>
     /// 初始化
     /// </summary>
@@ -184,6 +185,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 aBFileInfo.m_Hash = infos[0];
                 aBFileInfo.m_FileLength = long.Parse(infos[1]);
                 aBFileInfo.m_InCacheAsset = (infos.Length <= 2 || infos[2] == null) ? false : (string.Equals(infos[2], m_inCacheTrue) ? true : false);
+                aBFileInfo.m_Upgrade = (infos.Length <= 3 || infos[3] == null) ? false : (string.Equals(infos[3], m_inCacheTrue) ? true : false);
                 //TODO需要安卓输出
                 //Debug.LogErrorFormat("CheckVerionSAAndPer=>aBFileInfo  : name:{0}  fileLenght:{2} inCache:{3}  upgrade:{4}  hash:{1} ", aBFileInfo.m_Name, aBFileInfo.m_Hash, aBFileInfo.m_FileLength, aBFileInfo.m_InCacheAsset, aBFileInfo.m_Upgrade);
                 ABFileInfoDic.Add(fh.Key, aBFileInfo);
@@ -278,8 +280,14 @@ public class ABSysManager : Singleton<ABSysManager>
                 string[] infos = fh.Value.Split(m_separator);
                 long m_FileLen = long.Parse(infos[1]);
                 //判断是否需要加入下载列表   hash不对 文件长度不对
-                if (aBFileInfo.m_Hash != infos[0] || m_FileLen == 0 || aBFileInfo.m_FileLength != m_FileLen)
+                if (aBFileInfo.m_Upgrade ||  aBFileInfo.m_Hash != infos[0] || m_FileLen == 0 || aBFileInfo.m_FileLength != m_FileLen)
                 {
+                    if (aBFileInfo.m_Hash != infos[0] && aBFileInfo.m_Upgrade)
+                    {
+                        //hash值对不上 但是标记为需要更新的 那就有可能是之前文件下载了一部分，然后再次打开游戏时线上这文件又有更新了，将本地可能存在的temp文件删除，以免断电续传影响
+                        GameUtility.SafeDeleteFile(Const.ABCachePath + aBFileInfo.m_Name+ Const.TempSuffix);
+                    }
+
                     aBFileInfo.m_InCacheAsset = true;
                     aBFileInfo.m_Upgrade = true;
                     aBFileInfo.m_Hash = infos[0];
@@ -389,6 +397,7 @@ public class ABSysManager : Singleton<ABSysManager>
 
                 return;
             }
+            aBFileInfo.m_Upgrade = false;
 
             //(unityWebRequest.downloadHandler as DownloadTaskHandler).Dispose();
             CurrentDownedNum++;
@@ -399,8 +408,7 @@ public class ABSysManager : Singleton<ABSysManager>
     {
         //下载失败，最后统计失败的数量，然后出提示 统一再来下载一次
         CurrentDownFailNum++;
-        //将字典内file数据修改为0
-        aBFileInfo.m_Hash = m_inCacheTrue;
+        //将字典内file长度修改为0
         aBFileInfo.m_FileLength = 0;
         aBFileInfo.m_InCacheAsset = false;
 
@@ -410,8 +418,17 @@ public class ABSysManager : Singleton<ABSysManager>
     /// <summary>
     /// 保存缓存文件到缓存区
     /// </summary>
-    public void SaveCacheVerFile()
+    public void SaveCacheVerFile(bool onDestroy = false)
     {
+        if (!onDestroy)
+        {
+            m_isSaveCacheVerInfo = true;
+        }
+        if (onDestroy && m_isSaveCacheVerInfo)
+        {
+            Debug.Log("SaveCacheVerFile=>already save");
+            return;
+        }
         GameUtility.SafeDeleteFile(Const.ABCachePath + Const.FILE_VERSION + Const.TempFileName);
         if (AllNeedDownNum<=0)
         {
@@ -426,7 +443,8 @@ public class ABSysManager : Singleton<ABSysManager>
         foreach (KeyValuePair<string, ABFileInfo> fh in ABFileInfoDic)
         {
             ABFileInfo aBFileInfo = fh.Value;
-            vernew.SaveInFileHash(fh.Key, aBFileInfo.m_Hash + m_separator+ aBFileInfo.m_FileLength + m_separator + (aBFileInfo.m_InCacheAsset ? 1 : 0));
+            //文件名  hash值@文件长度@是否缓存区@是否需要升级
+            vernew.SaveInFileHash(fh.Key, aBFileInfo.m_Hash + m_separator+ aBFileInfo.m_FileLength + m_separator + (aBFileInfo.m_InCacheAsset ? 1 : 0) + m_separator + (aBFileInfo.m_Upgrade ? 1 : 0)) ;
         }
 
         if (ABSysManager.Instance.CurrentDownFailNum == 0)
@@ -457,22 +475,19 @@ public class ABSysManager : Singleton<ABSysManager>
         remoteVer = null;
 
         //如果有更新checkdown的话 释放掉资源后把名字改回去
-        ABFileInfo aBFileInfo = ABFileInfoDic[m_checkdownloadpanel];
-        if (aBFileInfo.m_Upgrade )
-        {
-            string destFilePathName = Const.ABCachePath + m_checkdownloadpanel;
-            string tempFilePathName = destFilePathName + Const.TempFileName;
-            if (File.Exists(destFilePathName) && File.Exists(tempFilePathName))
-            {
-                 GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
-            }
 
-            destFilePathName = Const.ABCachePath + m_checkdownloadpanel+m_manifestExten;
-            tempFilePathName = destFilePathName + Const.TempFileName;
-            if (File.Exists(destFilePathName) && File.Exists(tempFilePathName))
-            {
-                GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
-            }
+        string destFilePathName = Const.ABCachePath + m_checkdownloadpanel;
+        string tempFilePathName = destFilePathName + Const.TempFileName;
+        if (File.Exists(tempFilePathName))
+        {
+            GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
+        }
+
+        destFilePathName = Const.ABCachePath + m_checkdownloadpanel + m_manifestExten;
+        tempFilePathName = destFilePathName + Const.TempFileName;
+        if (File.Exists(tempFilePathName))
+        {
+            GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
         }
     }
     /// <summary>
@@ -485,4 +500,5 @@ public class ABSysManager : Singleton<ABSysManager>
             abFileDownloadList.Clear();
         }
     }
+
 }

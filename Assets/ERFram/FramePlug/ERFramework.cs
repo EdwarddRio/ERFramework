@@ -52,6 +52,8 @@ public class ERFramework : MonoSingleton<ERFramework>
     }
     private void OnApplicationQuit()
     {
+        //如果中途退出 保存下本地版本信息文件
+        ABSysManager.Instance.SaveCacheVerFile(true);
         //清理下载任务，关闭文件流
         DownmgrNative.Instance.ClearTask();
 #if UNITY_EDITOR

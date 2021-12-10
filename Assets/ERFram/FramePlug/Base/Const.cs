@@ -17,6 +17,8 @@ public class Const
 
     //下载的文件只能做临时文件的，不能直接替换掉缓存区的 名字最后加TTT
     public static string TempFileName = "TTT";
+    //.temp后缀字符串
+    public static string TempSuffix = ".temp";
     /// <summary>
     /// 版本文件名称
     /// </summary>
