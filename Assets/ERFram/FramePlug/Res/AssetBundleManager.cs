@@ -39,7 +39,8 @@ public class AssetBundleManager : Singleton<AssetBundleManager>
             configPath = Const.ABLoadPath + m_ABConfigABName;
         }
 
-        AssetBundle configAB = AssetBundle.LoadFromFile(configPath);
+        AssetBundle configAB = AssetBundle.LoadFromFile(configPath,0, Const.ABEncryptLen);
+
         TextAsset textAsset = configAB.LoadAsset<TextAsset>(m_ABConfigABName);
         if (textAsset == null)
         {
@@ -156,7 +157,7 @@ public class AssetBundleManager : Singleton<AssetBundleManager>
             }
 
             //long lastYiledTime = System.DateTime.Now.Ticks;
-            assetBundle = AssetBundle.LoadFromFile(fullPath);
+            assetBundle = AssetBundle.LoadFromFile(fullPath, 0, Const.ABEncryptLen);
             //Debug.LogError("加载AB包使用时间：" + (System.DateTime.Now.Ticks - lastYiledTime)/ 1000 + "毫秒");
             if (assetBundle == null)
             {

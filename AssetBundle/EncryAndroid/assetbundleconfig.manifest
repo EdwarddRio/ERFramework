@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 3722567212
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 55e438bbb48299ddcb696c21e5e91605
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 5ad585dd02dfb5016c0dad519eab8f49
+HashAppended: 0
+ClassTypes:
+- Class: 49
+  Script: {instanceID: 0}
+Assets:
+- Assets/ERFram/Data/ABData/AssetBundleConfig.bytes
+Dependencies: []

@@ -14,8 +14,14 @@ public class GameTool : Editor
     [MenuItem("Tools/打开文件夹/AssetBundleDir")]
     protected static void OpenAssetBundle(MenuCommand command)
     {
-        Debug.Log("AssetBundle File Path Is " + BundleEditor.BunleTargetPath);
-        Application.OpenURL(BundleEditor.BunleTargetPath);
+        Debug.Log("AssetBundle File Path Is " + BundleEditor.BundleTargetPath);
+        Application.OpenURL(BundleEditor.BundleTargetPath);
+    }
+    [MenuItem("Tools/打开文件夹/EncryAssetBundleDir")]
+    protected static void OpenEncryAssetBundle(MenuCommand command)
+    {
+        Debug.Log("AssetBundle File Path Is " + BundleEditor.BundleTargetEncryPath);
+        Application.OpenURL(BundleEditor.BundleTargetEncryPath);
     }
     [MenuItem("Tools/打开文件夹/LocalDir")]
     protected static void OpenLocalDir(MenuCommand command)

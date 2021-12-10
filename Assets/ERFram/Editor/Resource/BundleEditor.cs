@@ -11,13 +11,18 @@ using UnityEngine.Profiling;
 //XXX:框架内如果做单个数据的下载的话 可以再加一个ab包类 然后一个个数据一个ab包，等要用的时候 单独判定并且下载
 public class BundleEditor
 {
-    public static string BunleTargetPath
+    public static string BundleTargetPath
     {
-        get { return m_BunleTargetPath; }
+        get { return m_BundleTargetPath; }
     }
-    private static string m_BunleTargetPath = Application.dataPath + "/../AssetBundle/" + EditorUserBuildSettings.activeBuildTarget.ToString();
+    public static string BundleTargetEncryPath
+    {
+        get { return m_BundleTargetEncryPath; }
+    }
+    private static string m_BundleTargetPath = Application.dataPath + "/../AssetBundle/" + EditorUserBuildSettings.activeBuildTarget.ToString();
+    private static string m_BundleTargetEncryPath = Application.dataPath + "/../AssetBundle/Encry" + EditorUserBuildSettings.activeBuildTarget.ToString();
 
-    //private static string m_BunleTargetPath = Application.streamingAssetsPath;
+    //private static string m_BundleTargetPath = Application.streamingAssetsPath;
 
     private static string ABCONFIGPATH = "Assets/ERFram/Editor/Resource/ABConfig.asset";
     private static string ABBYTEPATH = RealConfig.GetRealFram().m_ABBytePath;
@@ -29,10 +34,14 @@ public class BundleEditor
     private static Dictionary<string, List<string>> m_AllPrefabDir = new Dictionary<string, List<string>>();
     //储存所有有效路径
     private static List<string> m_ConfigFil = new List<string>();
+    //开始打包时的时间ticks
+    private static long m_buildStartTicks;
 
-    [MenuItem("Tools/打包",false,1)]
+    [MenuItem("Tools/打包", false, 1)]
     public static void Build()
     {
+        m_buildStartTicks = System.DateTime.Now.Ticks;
+
         m_ConfigFil.Clear();
         m_AllFileAB.Clear();
         m_AllFileDir.Clear();
@@ -104,9 +113,15 @@ public class BundleEditor
             AssetDatabase.RemoveAssetBundleName(oldABNames[i], true);
             EditorUtility.DisplayProgressBar("清除AB包名", "名字：" + oldABNames[i], i * 1.0f / oldABNames.Length);
         }
+
+        //ab包加密
+        EncryptAB();
+
         //创建版本信息
         CreateVersionFile();
 
+
+        m_buildStartTicks = 0;
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         EditorUtility.ClearProgressBar();
@@ -151,16 +166,17 @@ public class BundleEditor
             }
         }
 
-        if (!Directory.Exists(m_BunleTargetPath))
+        if (!Directory.Exists(m_BundleTargetPath))
         {
-            Directory.CreateDirectory(m_BunleTargetPath);
+            Directory.CreateDirectory(m_BundleTargetPath);
         }
 
         DeleteAB();
         //生成自己的配置表
         WriteData(resPathDic);
 
-        AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(m_BunleTargetPath, BuildAssetBundleOptions.ChunkBasedCompression, EditorUserBuildSettings.activeBuildTarget);
+        AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(m_BundleTargetPath, BuildAssetBundleOptions.ChunkBasedCompression, EditorUserBuildSettings.activeBuildTarget);
+
         if (manifest == null)
         {
             Debug.LogError("AssetBundle 打包失败！");
@@ -171,7 +187,7 @@ public class BundleEditor
         }
     }
 
-    static void WriteData(Dictionary<string ,string> resPathDic)
+    static void WriteData(Dictionary<string, string> resPathDic)
     {
         AssetBundleConfig config = new AssetBundleConfig();
         config.ABList = new List<ABBase>();
@@ -233,6 +249,74 @@ public class BundleEditor
 
         SetABName("assetbundleconfig", ABBYTEPATH);
     }
+    /// <summary>
+    /// 加密ab包  防君子不防小人版
+    /// </summary>
+    static void EncryptAB()
+    {
+        if (!Directory.Exists(m_BundleTargetEncryPath))
+        {
+            Directory.CreateDirectory(m_BundleTargetEncryPath);
+        }
+
+        DirectoryInfo direction = new DirectoryInfo(m_BundleTargetPath);
+        FileInfo[] files = direction.GetFiles("*", SearchOption.AllDirectories);
+
+        string fullName = string.Empty;
+        string fileName = string.Empty;
+        byte[] secret = new byte[Const.ABEncryptLen];
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            fileName = files[i].Name;
+            fullName = files[i].FullName;
+            if (fileName.Equals("allver.ver.txt"))
+            {
+                continue;
+            }
+            if (fileName.EndsWith(".manifest"))
+            {
+                GameUtility.SafeCopyFile(fullName, Path.Combine(m_BundleTargetEncryPath, fileName));
+                continue;
+            }
+            if (files[i].LastWriteTime.Ticks <  m_buildStartTicks )
+            {
+                //不需要加密 但是得判断下之前是否有加密的文件存在，否则还是得加密,存在就跳过
+                if (File.Exists(Path.Combine(m_BundleTargetEncryPath, fileName)))
+                {
+                    continue;
+                }
+            }
+
+            //最后修改时间 大于等于开始时候的ticks 说明这个包有修改 重新加密
+            EditorUtility.DisplayProgressBar("加密AB包", "名字：" + fileName, i * 1.0f / files.Length);
+            Debug.Log("加密AB包，名字:" + fileName);
+            //随机加密byte
+            for (int rI = 0; rI < secret.Length; rI++)
+            {
+                secret[rI] = (byte)Random.Range(0, 256);
+            }
+            //加密byte写入开头
+            byte[] temp = File.ReadAllBytes(fullName);
+            byte[] newTemp = new byte[(int)Const.ABEncryptLen + temp.Length];
+            for (int bI = 0; bI < newTemp.Length; bI++)
+            {
+                if (bI < (int)Const.ABEncryptLen)
+                {
+                    newTemp[bI] = secret[bI];
+                }
+                else
+                {
+                    newTemp[bI] = temp[bI - (int)Const.ABEncryptLen];
+                }
+            }
+
+            File.WriteAllBytes(Path.Combine(m_BundleTargetEncryPath, fileName), newTemp);
+        }
+
+        //创建版本信息
+        CreateVersionFile(true);
+    }
 
     /// <summary>
     /// 删除无用AB包
@@ -240,11 +324,11 @@ public class BundleEditor
     static void DeleteAB()
     {
         string[] allBundlesName = AssetDatabase.GetAllAssetBundleNames();
-        DirectoryInfo direction = new DirectoryInfo(m_BunleTargetPath);
+        DirectoryInfo direction = new DirectoryInfo(m_BundleTargetPath);
         FileInfo[] files = direction.GetFiles("*", SearchOption.AllDirectories);
         for (int i = 0; i < files.Length; i++)
         {
-            if (ConatinABName(files[i].Name, allBundlesName) || files[i].Name.EndsWith(".meta")|| files[i].Name.EndsWith(".manifest") || files[i].Name.EndsWith("assetbundleconfig"))
+            if (ConatinABName(files[i].Name, allBundlesName) || files[i].Name.EndsWith(".meta") || files[i].Name.EndsWith(".manifest") || files[i].Name.EndsWith("assetbundleconfig"))
             {
                 continue;
             }
@@ -283,7 +367,7 @@ public class BundleEditor
     {
         for (int i = 0; i < m_AllFileAB.Count; i++)
         {
-            if (path == m_AllFileAB[i] || (path.Contains(m_AllFileAB[i]) && (path.Replace(m_AllFileAB[i],"")[0] == '/')))
+            if (path == m_AllFileAB[i] || (path.Contains(m_AllFileAB[i]) && (path.Replace(m_AllFileAB[i], "")[0] == '/')))
                 return true;
         }
 
@@ -309,26 +393,47 @@ public class BundleEditor
     /// <summary>
     /// 创建版本信息文件
     /// </summary>
-    static void CreateVersionFile()
+    static void CreateVersionFile(bool encry =false)
     {
-        GameUtility.SafeDeleteFile(m_BunleTargetPath + Const.FILE_VERSION);
+        string path = m_BundleTargetPath;
+        if (encry)
+        {
+            path = m_BundleTargetEncryPath;
+        }
+
+        GameUtility.SafeDeleteFile(Path.Combine(path, Const.FILE_VERSION));
 
         VerInfo vernew = new VerInfo();
-        vernew.path = m_BunleTargetPath;
+        vernew.path = path;
         vernew.GenHash();
         Debug.Log("文件数量：" + vernew.filehash.Count);
         vernew.ver = Const.GAME_VERSION;
 
-        vernew.SaveToPath(m_BunleTargetPath);
-        Debug.Log("版本文件写入成功");
+        vernew.SaveToPath(path);
 
+
+        Debug.Log("版本文件写入成功");
     }
 
-    [MenuItem("Tools/复制AB包到LocalPath",false,1)]
+    [MenuItem("Tools/复制AB包到LocalPath", false, 1)]
     /// <summary>
     /// 将AB包复制到StreamingAssets
     /// </summary>
-    public static void CopyABToSA() {
+    public static void CopyDefaultABToSA()
+    {
+        CopyABToSA(m_BundleTargetPath);
+    }
+    [MenuItem("Tools/复制加密后AB包到LocalPath", false, 1)]
+    /// <summary>
+    /// 将AB包复制到StreamingAssets
+    /// </summary>
+    public static void CopyEncryABToSA()
+    {
+        CopyABToSA(m_BundleTargetEncryPath);
+    }
+
+    public static void CopyABToSA(string path)
+    {
         string abInSAPath = Const.ABLoadPathByEditor;
         VerInfo verSA = null;
         if (!Directory.Exists(abInSAPath))
@@ -338,7 +443,7 @@ public class BundleEditor
         else
         {
             //对比StreamingAssets中已经有的版本信息文件是否都存在或者多的
-            verSA = VerInfo.Read(abInSAPath,false);
+            verSA = VerInfo.Read(abInSAPath, false);
             verSA = CheckSAVerInfo(verSA, abInSAPath);
         }
         if (verSA == null)
@@ -346,7 +451,7 @@ public class BundleEditor
             verSA = new VerInfo();
         }
         //对比哪些文件需要复制过来
-        VerInfo verRead = VerInfo.Read(m_BunleTargetPath +"/", false);
+        VerInfo verRead = VerInfo.Read(path + "/", false);
 
         verSA.ver = verRead.ver;
 
@@ -367,18 +472,18 @@ public class BundleEditor
                 if (!string.Equals(abValue, saValue))
                 {
                     //文件复制替换
-                    GameUtility.SafeCopyFile(m_BunleTargetPath + "/" + fh.Key, Const.ABLoadPathByEditor + fh.Key);
+                    GameUtility.SafeCopyFile(path + "/" + fh.Key, Const.ABLoadPathByEditor + fh.Key);
                     Debug.Log("复制文件替换 ：" + fh.Key);
                 }
             }
             else
             {
                 //文件复制
-                GameUtility.SafeCopyFile(m_BunleTargetPath + "/" + fh.Key, Const.ABLoadPathByEditor + fh.Key);
+                GameUtility.SafeCopyFile(path + "/" + fh.Key, Const.ABLoadPathByEditor + fh.Key);
                 Debug.Log("复制文件替换 ：" + fh.Key);
             }
         }
-        GameUtility.SafeCopyFile(m_BunleTargetPath + "/" +Const.FILE_VERSION, Const.ABLoadPathByEditor + Const.FILE_VERSION);
+        GameUtility.SafeCopyFile(path + "/" + Const.FILE_VERSION, Const.ABLoadPathByEditor + Const.FILE_VERSION);
         Debug.Log("复制文件替换 ：" + Const.FILE_VERSION);
         for (int i = 0; i < saNames.Count; i++)
         {
@@ -397,7 +502,7 @@ public class BundleEditor
     /// <param name="verSA"></param>
     /// <param name="abInSAPath"></param>
     /// <returns></returns>
-    protected static VerInfo CheckSAVerInfo(VerInfo verSA,string abInSAPath)
+    protected static VerInfo CheckSAVerInfo(VerInfo verSA, string abInSAPath)
     {
         if (verSA != null)
         {

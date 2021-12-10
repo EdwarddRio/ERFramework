@@ -19,6 +19,8 @@ public class Const
     public static string TempFileName = "TTT";
     //.temp后缀字符串
     public static string TempSuffix = ".temp";
+    //ab包加密长度
+    public static ulong ABEncryptLen = 5;
     /// <summary>
     /// 版本文件名称
     /// </summary>
@@ -84,6 +86,7 @@ public class Const
 #else
     private static string _ABRemotePath = "http://127.0.0.1:1818/Editor/";
 #endif
+
     public static string ABRemotePath
     {
         get
