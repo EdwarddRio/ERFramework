@@ -56,7 +56,7 @@ public class AssetBundleManager : Singleton<AssetBundleManager>
         for (int i = 0; i < config.ABList.Count; i++)
         {
             ABBase abBase = config.ABList[i];
-            //TODO需测试，之前的ab数据能否卸载
+
             ResouceItem item =null;
             bool added = true;
             if (!m_ResouceItemDic.TryGetValue(abBase.Crc, out item) ||item ==null )
