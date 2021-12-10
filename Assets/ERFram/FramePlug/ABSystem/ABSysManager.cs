@@ -70,25 +70,14 @@ public class ABSysManager : Singleton<ABSysManager>
         for (int i = 0; i < listCount; i++)
         {
             ABFileInfo aBFileInfo = abFileDownloadList[i];
-            if (aBFileInfo.m_FileLength == 0 || string.Equals(aBFileInfo.m_Hash, m_inCacheTrue))
+            if (aBFileInfo.m_FileLength == 0 )
             {
-                //从远端版本文件中读取出信息 然后赋值hash
-                string remoteInfo = null;
-                if (remoteVer.filehash.TryGetValue(aBFileInfo.m_Name,out remoteInfo) && remoteInfo!=null)
-                {
-                    string[] infos = remoteInfo.Split(m_separator);
-                    aBFileInfo.m_Hash = infos[0];
-                }
-                else
-                {
-                    Debug.LogError("ReDownABEvent=>Read Hash from remoteInfo failed, Name:" + aBFileInfo.m_Name);
-                }
-
+                aBFileInfo.m_DownProgress = 0;
                 ablistTemp.Add(aBFileInfo);
             }
             else
             {
-                TotalDownSize -= (aBFileInfo.m_FileLength / 1024 / 1024f);
+                TotalDownSize -= (aBFileInfo.m_FileLengthMB );
             }
         }
         abFileDownloadList = ablistTemp;
@@ -184,6 +173,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 string[] infos = fh.Value.Split(m_separator);
                 aBFileInfo.m_Hash = infos[0];
                 aBFileInfo.m_FileLength = long.Parse(infos[1]);
+                aBFileInfo.m_FileLengthMB = aBFileInfo.m_FileLength / 1024 / 1024f;
                 aBFileInfo.m_InCacheAsset = (infos.Length <= 2 || infos[2] == null) ? false : (string.Equals(infos[2], m_inCacheTrue) ? true : false);
                 aBFileInfo.m_Upgrade = (infos.Length <= 3 || infos[3] == null) ? false : (string.Equals(infos[3], m_inCacheTrue) ? true : false);
                 //TODO需要安卓输出
@@ -265,6 +255,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 string[] infos = fh.Value.Split(m_separator);
                 aBFileInfo.m_Hash = infos[0];
                 aBFileInfo.m_FileLength = long.Parse(infos[1]);
+                aBFileInfo.m_FileLengthMB = aBFileInfo.m_FileLength / 1024 / 1024f;
                 //新加的文件 只能使用在缓存内的
                 aBFileInfo.m_InCacheAsset = true;
                 aBFileInfo.m_Upgrade = true;
@@ -284,14 +275,19 @@ public class ABSysManager : Singleton<ABSysManager>
                 {
                     if (aBFileInfo.m_Hash != infos[0] && aBFileInfo.m_Upgrade)
                     {
-                        //hash值对不上 但是标记为需要更新的 那就有可能是之前文件下载了一部分，然后再次打开游戏时线上这文件又有更新了，将本地可能存在的temp文件删除，以免断电续传影响
+                        //hash值对不上 但是标记为需要更新的 那就有可能是之前文件下载了一部分，然后再次打开游戏时线上这文件又有更新了，将本地可能存在的temp文件删除，以免断点续传影响
                         GameUtility.SafeDeleteFile(Const.ABCachePath + aBFileInfo.m_Name+ Const.TempSuffix);
                     }
 
                     aBFileInfo.m_InCacheAsset = true;
                     aBFileInfo.m_Upgrade = true;
                     aBFileInfo.m_Hash = infos[0];
-                    aBFileInfo.m_FileLength = m_FileLen;
+                    if (aBFileInfo.m_FileLength != m_FileLen)
+                    {
+                        aBFileInfo.m_FileLength = m_FileLen;
+                        aBFileInfo.m_FileLengthMB = aBFileInfo.m_FileLength / 1024 / 1024f;
+                    }
+
                     needUpgrade = true;
                     //TODO需要安卓输出
                     //Debug.LogErrorFormat("CheckNeedDownFiles=>Upgrade=>aBFileInfo  : name:{0}  ", aBFileInfo.m_Name);
@@ -306,7 +302,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 {
                     Debug.LogErrorFormat("CheckNeedDownFiles=>aBFileInfo=> m_FileLength is 0!!: name:{0} ", aBFileInfo.m_Name);
                 }
-                TotalDownSize += (aBFileInfo.m_FileLength/1024/1024f);
+                TotalDownSize += (aBFileInfo.m_FileLengthMB);
             }
         }
         //遍历需要更新的文件，如果文件或者.manifest单独有一个更新的话 判定另外一个是不是在缓存区内，如果不是的话 也需要加入下载，配对使用的
@@ -341,7 +337,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 {
                     Debug.LogErrorFormat("CheckNeedDownFiles=>aBFileInfo=> m_FileLength is 0!!: name:{0} ", aBFileInfo.m_Name);
                 }
-                TotalDownSize += (aBFileInfo.m_FileLength / 1024 / 1024f);
+                TotalDownSize += (aBFileInfo.m_FileLengthMB);
             }
         }
         Debug.LogFormat("CheckNeedDownFiles=> all need down file num:{0}  size:{1}", AllNeedDownNum, TotalDownSize);
@@ -397,6 +393,7 @@ public class ABSysManager : Singleton<ABSysManager>
 
                 return;
             }
+            aBFileInfo.m_DownProgress = 1;
             aBFileInfo.m_Upgrade = false;
 
             //(unityWebRequest.downloadHandler as DownloadTaskHandler).Dispose();
@@ -410,7 +407,9 @@ public class ABSysManager : Singleton<ABSysManager>
         CurrentDownFailNum++;
         //将字典内file长度修改为0
         aBFileInfo.m_FileLength = 0;
+        aBFileInfo.m_FileLengthMB = 0;
         aBFileInfo.m_InCacheAsset = false;
+        aBFileInfo.m_DownProgress = 0;
 
 
         DownABFileOnLoadFail?.Invoke(str);
@@ -489,6 +488,28 @@ public class ABSysManager : Singleton<ABSysManager>
         {
             GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
         }
+    }
+    /// <summary>
+    /// 获得当前已下载的大小除以总大小获得比例
+    /// </summary>
+    /// <returns></returns>
+    public float GetAllDownFileProgress()
+    {
+        float progress = 0;
+        float cursize = 0;
+        ABFileInfo aBFileInfo = null;
+        for (int i = 0; i < abFileDownloadList.Count; i++)
+        {
+            aBFileInfo = abFileDownloadList[i];
+
+            if (aBFileInfo.m_DownProgress >=1)
+            {
+                cursize += aBFileInfo.m_FileLengthMB;
+            }
+        }
+        cursize += DownmgrNative.Instance.AllRunnerDownFileSize();
+        progress = cursize / TotalDownSize;
+        return progress;
     }
     /// <summary>
     /// 清空abFileDownloadList列表

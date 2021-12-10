@@ -10,6 +10,8 @@ public class ABFileInfo
     public string m_Hash = string.Empty;
     //文件大小 字节为单位  转为kb:/1024  转为mb:/1024/1024
     public long m_FileLength = 0;
+    //文件大小 字节为MB
+    public float m_FileLengthMB = 0;
     //是否需要更新
     public bool m_Upgrade = false;
     //false:文件在streamingAssets内的 true:缓存区域

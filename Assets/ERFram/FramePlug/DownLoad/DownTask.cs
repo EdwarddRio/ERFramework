@@ -7,11 +7,10 @@ using UnityEngine.Networking;
 public class DownTask
 {
     public string path = string.Empty;
-    public uint pathCrc;
     public string tag = string.Empty;
     public string url = string.Empty;
     public Action<UnityWebRequest, string> onload;
-    public Action<float, uint> onProgress;
+    public Action<float, string> onProgress;
     public bool download;
     public bool isDone;
     public float progress;
@@ -19,12 +18,11 @@ public class DownTask
 
 
     public DownTask() { }
-    public void Init(string url, string path, string tag, bool download, Action<UnityWebRequest, string> onload, Action<float, uint> progress)
+    public void Init(string url, string path, string tag, bool download, Action<UnityWebRequest, string> onload, Action<float, string> progress)
     {
         Debug.Log("task " + url + " path " + path + " tag " + tag);
         this.url = url;
         this.path = path;
-        this.pathCrc = Crc32.GetCrc32(path);
         this.tag = tag;
         this.onload = onload;
         this.download = download;
@@ -35,7 +33,6 @@ public class DownTask
     public void Reset()
     {
         url = tag = path = string.Empty;
-        pathCrc = 0;
         onload = null;
         onProgress = null;
         download = false;
@@ -49,7 +46,7 @@ public class DownTask
         this.onload += onload;
     }
 
-    public void AddProgressListener(Action<float, uint> progress)
+    public void AddProgressListener(Action<float, string> progress)
     {
         this.onProgress -= progress;
         this.onProgress += progress;
@@ -60,7 +57,7 @@ public class DownTask
         this.progress = progress;
         if (onProgress != null)
         {
-            onProgress(progress, this.pathCrc);
+            onProgress(progress, tag);
         }
     }
 
@@ -69,7 +66,7 @@ public class DownTask
         this.isDone = true;
         if (onload != null)
         {
-            onload(www, path);
+            onload(www, tag);
         }
     }
 
@@ -227,6 +224,16 @@ public class DownloadTaskHandler : DownloadHandlerScript
         }
     }
 
+    /// <summary>
+    /// 已下载文件大小
+    /// </summary>
+    public ulong CurrentDownFileSize
+    {
+        get
+        {
+            return CurFileSize;
+        }
+    }
     /// <summary>
     /// 文件的总大小
     /// </summary>
@@ -437,7 +444,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
 
         //Debug.LogError("Curfile Size Datalength " + CurFileSize + "/" + TotalFileSize + " path " + mPath);
         //统计下载速度
-        if (UnityEngine.Time.time - LastTime >= 1.0f)
+        if(UnityEngine.Time.time - LastTime >= 1f)
         {
             DownloadSpeed = (CurFileSize - LastDataSize) / (UnityEngine.Time.time - LastTime);
             LastTime = UnityEngine.Time.time;

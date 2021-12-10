@@ -17,6 +17,8 @@ public class DownmgrNative : Singleton<DownmgrNative>
     protected List<DownTaskRunner> runners = new List<DownTaskRunner>();
     protected Dictionary<string, DownTask> taskList = new Dictionary<string, DownTask>();
     protected float runnerDownSpeed = 0;
+    protected float runnerDownSize = 0;
+    public bool GetRunnerDownSize { private get; set; } = false;
     public int taskMaxCount { get; private set; }
     //用来获取hash值
     public System.Security.Cryptography.SHA1Managed sha1 { get; private set; }
@@ -34,7 +36,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
     {
         return Convert.ToBase64String(sha1.ComputeHash(datas));
     }
-   
+
     public float GetProgress(string file)
     {
         if (taskList.ContainsKey(file))
@@ -83,6 +85,11 @@ public class DownmgrNative : Singleton<DownmgrNative>
             reGetSpeed = true;
             runnerDownSpeed = 0;
         }
+        if (GetRunnerDownSize)
+        {
+            runnerDownSize = 0;
+        }
+
         //处理可多线加载的任务
         if (runners.Count < taskMaxCount && task.Count > 0)
         {
@@ -162,16 +169,22 @@ public class DownmgrNative : Singleton<DownmgrNative>
             }
             else
             {
+                if (GetRunnerDownSize)
+                {
+                    runnerDownSize += cur.handler.CurrentDownFileSize / 1024 / 1024f;
+                }
+
                 //下载中
                 if (cur.task.onProgress != null && !cur.www.isDone)
                 {
                     cur.task.OnProgress(cur.www.downloadProgress);
-
                     if (cur.task.download)
                     {
-                       Debug.LogFormat("DownmgrNative=> down progress {0} : {1}", cur.task.path, cur.www.downloadProgress);
+                        Debug.LogFormat("DownmgrNative=> down progress {0} : {1}", cur.task.path, cur.www.downloadProgress);
                     }
+
                 }
+
                 //超过三次拉取都失败了
                 if (cur.Update(Time.deltaTime))
                 {
@@ -192,6 +205,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
                     runners.RemoveAt(i);
                     i--;
                 }
+                //统计速度
                 if (reGetSpeed)
                 {
                     if (cur.handler!=null)
@@ -199,6 +213,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
                         runnerDownSpeed += cur.handler.Speed;
                     }
                 }
+                
             }
         }
 
@@ -226,6 +241,14 @@ public class DownmgrNative : Singleton<DownmgrNative>
         {
             TaskFinish = finish;
         }
+    }
+    /// <summary>
+    /// 返回所有运行中任务的已下载大小
+    /// </summary>
+    /// <returns></returns>
+    public float AllRunnerDownFileSize()
+    {
+        return runnerDownSize;
     }
     /// <summary>
     /// 返回所有运行中任务的下载速度
@@ -293,7 +316,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
     /// <param name="onLoad"></param>
     /// <param name="onProgress"></param>
     /// <param name="download"></param>
-    internal DownTask LoadFromRemote(string path, string tag, Action<UnityWebRequest, string> onLoad, Action<float, uint> onProgress = null, bool download = true)
+    internal DownTask LoadFromRemote(string path, string tag, Action<UnityWebRequest, string> onLoad, Action<float, string> onProgress = null, bool download = true)
     {
         string remotePath = path;
         //if (!Path.HasExtension(path))
@@ -314,7 +337,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
     /// <param name="onLoad"></param>
     /// <param name="onProgress"></param>
     /// <param name="remote"></param>
-    internal DownTask Load(string url, string path, string tag, Action<UnityWebRequest, string> onLoad, Action<float, uint> onProgress, bool remote = false)
+    internal DownTask Load(string url, string path, string tag, Action<UnityWebRequest, string> onLoad, Action<float, string> onProgress, bool remote = false)
     {
         if (!taskList.ContainsKey(url))
         {

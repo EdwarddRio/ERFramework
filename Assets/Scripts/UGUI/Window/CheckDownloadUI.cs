@@ -68,15 +68,19 @@ public class CheckDownloadUI : Window
         //下载过程中 每秒刷新显示下载速度
         if (ABSysManager.Instance.AllNeedDownNum >0)
         {
+            DownmgrNative.Instance.GetRunnerDownSize = true;
             //开始下载ab资源 如果下载有checkdown的话 需要改下下载的名字
             ABSysManager.Instance.StartDownABFile(DownABFileOnLoadSuccess, DownABFileOnLoadFail);
 
             while (ABSysManager.Instance.AllNeedDownNum != (ABSysManager.Instance.CurrentDownedNum + ABSysManager.Instance.CurrentDownFailNum))
             {
-                m_MainPanel.RefreshDownProgress(ABSysManager.Instance.AllNeedDownNum, ABSysManager.Instance.CurrentDownedNum, DownmgrNative.Instance.AllRunnerDownSpeed());
                 yield return m_WaitForEndOfFrame;
+                m_MainPanel.RefreshDownProgress(ABSysManager.Instance.GetAllDownFileProgress(), DownmgrNative.Instance.AllRunnerDownSpeed());
             }
-            while (true)
+            DownmgrNative.Instance.GetRunnerDownSize = false;
+            Debug.LogError("下载文件 成功：" + ABSysManager.Instance.CurrentDownedNum + "  失败" + ABSysManager.Instance.CurrentDownFailNum);
+
+            while (m_MainPanel.m_currentDownProgress <1)
             {
                 if (m_MainPanel.ProgressToOne(0.5f))
                 {
@@ -84,8 +88,6 @@ public class CheckDownloadUI : Window
                 }
                 yield return m_WaitForEndOfFrame;
             }
-
-            Debug.LogError("下载文件 成功：" + ABSysManager.Instance.CurrentDownedNum + "  失败" + ABSysManager.Instance.CurrentDownFailNum);
 
         }           
         //下载完成 保存缓存版本文件
