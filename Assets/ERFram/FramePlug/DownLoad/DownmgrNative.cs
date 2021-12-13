@@ -403,7 +403,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
     /// <returns></returns>
     public bool DownFailed(UnityWebRequest unityWebRequest)
     {
-        return unityWebRequest.isHttpError || unityWebRequest.isHttpError || unityWebRequest.downloadProgress < 1 || !string.Equals(unityWebRequest.error,null )
+        return unityWebRequest.isHttpError || unityWebRequest.isHttpError || unityWebRequest.downloadProgress < 1 || !string.IsNullOrEmpty(unityWebRequest.error )
             /* || string.Equals(unityWebRequest.error , "Request aborted") || string.Equals(unityWebRequest.error, "Cannot connect to destination host")*/;
     }
 }
