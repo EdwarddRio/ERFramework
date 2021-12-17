@@ -30,7 +30,15 @@ public class PlaneData : ITableItem, IComparable<PlaneData>
 
     public int CompareTo(PlaneData other)
     {
-        throw new NotImplementedException();
+        if (ShipId > other.ShipId)
+        {
+            return 1;
+        }
+        else if (ShipId < other.ShipId)
+        {
+            return -1;
+        }
+        return 0;
     }
 
     public int Key()
