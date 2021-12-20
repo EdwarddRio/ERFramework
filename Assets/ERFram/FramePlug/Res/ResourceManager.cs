@@ -1150,7 +1150,6 @@ public class DoubleLinedList<T> where T : class, new()
 public class CMapList<T> where T : class, new()
 {
     DoubleLinedList<T> m_DLink = new DoubleLinedList<T>();
-    Dictionary<T, DoubleLinkedListNode<T>> m_FindMap = new Dictionary<T, DoubleLinkedListNode<T>>();
 
     ~CMapList()
     {
@@ -1174,14 +1173,12 @@ public class CMapList<T> where T : class, new()
     /// <param name="t"></param>
     public void InsertToHead(T t)
     {
-        DoubleLinkedListNode<T> node = null;
-        if (m_FindMap.TryGetValue(t, out node) && node != null)
+        DoubleLinkedListNode<T> node = Find(t);
+        if (node == null)
         {
-            m_DLink.AddToHeader(node);
             return;
         }
         m_DLink.AddToHeader(t);
-        m_FindMap.Add(t, m_DLink.Head);
     }
 
     /// <summary>
@@ -1201,13 +1198,12 @@ public class CMapList<T> where T : class, new()
     /// <param name="t"></param>
     public void Remove(T t)
     {
-        DoubleLinkedListNode<T> node = null;
-        if (!m_FindMap.TryGetValue(t, out node) || node == null)
+        DoubleLinkedListNode<T> node = Find(t);
+        if (node == null)
         {
             return;
         }
         m_DLink.RemoveNode(node);
-        m_FindMap.Remove(t);
     }
 
     /// <summary>
@@ -1225,21 +1221,30 @@ public class CMapList<T> where T : class, new()
     /// <returns></returns>
     public int Size()
     {
-        return m_FindMap.Count;
+        return m_DLink.Count;
     }
 
     /// <summary>
-    /// 查找是否存在该节点
+    /// 查找节点
     /// </summary>
     /// <param name="t"></param>
     /// <returns></returns>
-    public bool Find(T t)
+    public DoubleLinkedListNode<T> Find(T t)
     {
-        DoubleLinkedListNode<T> node = null;
-        if (!m_FindMap.TryGetValue(t, out node) || node == null)
-            return false;
-
-        return true;
+        DoubleLinkedListNode<T> currentNode = m_DLink.Head;
+        while (true)
+        {
+            if (currentNode.t == t)
+            {
+                return currentNode;
+            }
+            if (currentNode.next == null)
+            {
+                break;
+            }
+            currentNode = currentNode.next;
+        }
+        return null;
     }
 
     /// <summary>
@@ -1249,10 +1254,11 @@ public class CMapList<T> where T : class, new()
     /// <returns></returns>
     public bool Refresh(T t)
     {
-        DoubleLinkedListNode<T> node = null;
-        if (!m_FindMap.TryGetValue(t, out node) || node == null)
+        DoubleLinkedListNode<T> node = Find(t);
+        if (node == null)
+        {
             return false;
-
+        }
         m_DLink.MoveToHead(node);
         return true;
     }
