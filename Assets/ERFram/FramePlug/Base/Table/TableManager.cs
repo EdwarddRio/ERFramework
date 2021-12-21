@@ -10,14 +10,12 @@ public interface ITableItem
 public interface ITableManager
 {
     string TableName();
-    object TableData { get; }
 }
 
 public abstract class TableManager<T, U> : Singleton<U>, ITableManager where T : ITableItem
 {
     // abstract functions need tobe implements.
     public abstract string TableName();
-    public object TableData { get { return mItemArray; } }
 
     // the data arrays.
     T[] mItemArray;

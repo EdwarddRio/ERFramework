@@ -8,7 +8,6 @@ public abstract class TableCollectionManager<T, U> : Singleton<U>, ITableManager
 {
 	// abstract functions need tobe implements.
     public abstract string TableName();
-    public object TableData { get { return mAllItemArray; } }
 
     T[] mAllItemArray;
 	List< List<T> > mItemCollection = new List< List<T> >();

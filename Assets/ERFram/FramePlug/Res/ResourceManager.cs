@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
+/* 可优化：
+ * 传参部分object类型会涉及到装箱拆箱，
+ * 
+ * 思路：所有类型参数放到字典内，传值以两个int为键值对 前一个:(key的index) 后一个:(value的index)    
+ * 
+ * 值类型可以固定住特殊索引，实际获取时用switch判定
+ * Dictionary<object,int> object:类型 int：对应的key的index
+ * 值类型直接用多个list<值类型>存入
+ * Dictionary<int,list<object>> int:key的index  list<object>:暂存的值对应(value的index)   
+ * 
+ * 数据存入时可以用for循环判定list有null的就直接放入 否则添加到最后   值类型的话可以判定是否为0等，用一个特殊规则限定
+ * 
+ */
+
 public enum LoadResPriority
 {
     RES_HIGHT = 0,//最高优先级
