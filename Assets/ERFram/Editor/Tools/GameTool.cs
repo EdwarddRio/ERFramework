@@ -11,7 +11,7 @@ public class GameTool : Editor
         Debug.Log("Persistent File Path Is " + Application.persistentDataPath);
         Application.OpenURL(Application.persistentDataPath);
     }
-    [MenuItem("Tools/打开文件夹/AssetBundleDir")]
+    //[MenuItem("Tools/打开文件夹/AssetBundleDir")]
     protected static void OpenAssetBundle(MenuCommand command)
     {
         Debug.Log("AssetBundle File Path Is " + BundleEditor.BundleTargetPath);

@@ -1246,17 +1246,20 @@ public class CMapList<T> where T : class, new()
     public DoubleLinkedListNode<T> Find(T t)
     {
         DoubleLinkedListNode<T> currentNode = m_DLink.Head;
-        while (true)
+        if (currentNode !=null)
         {
-            if (currentNode.t == t)
+            while (true)
             {
-                return currentNode;
+                if (currentNode.t == t)
+                {
+                    return currentNode;
+                }
+                if (currentNode.next == null)
+                {
+                    break;
+                }
+                currentNode = currentNode.next;
             }
-            if (currentNode.next == null)
-            {
-                break;
-            }
-            currentNode = currentNode.next;
         }
         return null;
     }

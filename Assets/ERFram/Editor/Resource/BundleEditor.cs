@@ -415,7 +415,7 @@ public class BundleEditor
         Debug.Log("版本文件写入成功");
     }
 
-    [MenuItem("Tools/复制AB包到LocalPath", false, 1)]
+    //[MenuItem("Tools/复制AB包到LocalPath", false, 1)]
     /// <summary>
     /// 将AB包复制到StreamingAssets
     /// </summary>
