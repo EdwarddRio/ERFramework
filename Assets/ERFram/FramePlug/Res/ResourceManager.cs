@@ -1245,22 +1245,34 @@ public class CMapList<T> where T : class, new()
     /// <returns></returns>
     public DoubleLinkedListNode<T> Find(T t)
     {
-        DoubleLinkedListNode<T> currentNode = m_DLink.Head;
-        if (currentNode !=null)
+        if (m_DLink.Count <= 0)
         {
-            while (true)
+            if (m_DLink.Head != null)
             {
-                if (currentNode.t == t)
-                {
-                    return currentNode;
-                }
-                if (currentNode.next == null)
-                {
-                    break;
-                }
-                currentNode = currentNode.next;
+                Debug.LogError("DoubleLinedList->Find : Count is zero but Head is not null.Please Check");
             }
+            return null;
         }
+
+        DoubleLinkedListNode<T> currentNode = m_DLink.Head;
+        if (currentNode == null)
+        {
+            Debug.LogError("DoubleLinedList->Find : Count is not zero but Head is null.Please Check");
+            return null;
+        }
+        while (true)
+        {
+            if (currentNode.t == t)
+            {
+                return currentNode;
+            }
+            if (currentNode.next == null)
+            {
+                break;
+            }
+            currentNode = currentNode.next;
+        }
+
         return null;
     }
 
