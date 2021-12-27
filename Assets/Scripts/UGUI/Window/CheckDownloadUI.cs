@@ -5,7 +5,7 @@ using UnityEngine;
 public class CheckDownloadUI : Window
 {
     private CheckDownloadPanel m_MainPanel;
-    public override void Awake(params object[] paralist)
+    public override void Awake<T, U, X>(T param1, U param2, X param3)
     {
         m_MainPanel = GameObject.GetComponent<CheckDownloadPanel>();
         if (UnityEngine.Object.ReferenceEquals(m_MainPanel, null))
@@ -14,7 +14,7 @@ public class CheckDownloadUI : Window
             return;
         }
     }
-    public override void OnShow(params object[] paralist)
+    public override void OnShow<T, U, X>(T param1, U param2, X param3)
     {
         AddButtonClickListener(m_MainPanel.m_Btn_Ok, Btn_OkEvent);
         AddButtonClickListener(m_MainPanel.m_Btn_Cancel, Btn_CancelEvent);

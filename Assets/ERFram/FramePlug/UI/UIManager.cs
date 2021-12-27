@@ -119,12 +119,12 @@ public class UIManager : Singleton<UIManager>
     /// <param name="uIMsgID">消息id</param>
     /// <param name="paras">参数数组</param>
     /// <returns></returns>
-    public bool SendMessageToWnd(string name,UIMsgID uIMsgID = 0,params object[] paras)
+    public bool SendMessageToWnd<T,U,X>(string name,UIMsgID uIMsgID ,T param1,U param2,X param3)
     {
         Window wnd = FindWndByName<Window>(name);
         if (wnd !=null)
         {
-            return wnd.OnMessage(uIMsgID, paras);
+            return wnd.OnMessage(uIMsgID, param1,param2,param3);
         }
         return false;
     }
@@ -148,10 +148,23 @@ public class UIManager : Singleton<UIManager>
     /// 打开ui窗口
     /// </summary>
     /// <param name="wndName"></param>
-    /// <param name="btop"></param>
+    /// <param name="btop"> true</param>
+    /// <param name="wndLayer"> WndLayer.wnd</param>
     /// <param name="paras"></param>
     /// <returns></returns>
-    public Window PopUpWindow(string wndName, bool btop = true,WndLayer wndLayer = WndLayer.wnd , params object[] paras)
+    public Window PopUpWindow(string wndName, bool btop = true, WndLayer wndLayer = WndLayer.wnd)
+    {
+        return PopUpWindow<object, object, object>(wndName, btop, wndLayer, null, null, null);
+    }
+    public Window PopUpWindow<T>(string wndName, bool btop , WndLayer wndLayer , T param1)
+    {
+        return PopUpWindow<T, object, object>(wndName, btop, wndLayer, param1, null, null);
+    }
+    public Window PopUpWindow<T, U>(string wndName, bool btop, WndLayer wndLayer, T param1, U param2)
+    {
+        return PopUpWindow<T, U, object>(wndName, btop, wndLayer, param1, param2, null);
+    }
+    public Window PopUpWindow<T,U,X>(string wndName, bool btop,WndLayer wndLayer ,T param1, U param2, X param3)
     {
         Window wnd = FindWndByName<Window>(wndName);
         if (wnd == null)
@@ -184,7 +197,7 @@ public class UIManager : Singleton<UIManager>
             wnd.Name = wndName;
             wnd.GameObject = wndObj;
             wnd.Transform = wndObj.transform;
-            wnd.Awake(paras);
+            wnd.Awake(param1,param2,param3);
 
             switch (wndLayer)
             {
@@ -205,11 +218,11 @@ public class UIManager : Singleton<UIManager>
             {
                 wndObj.transform.SetAsLastSibling();
             }
-            wnd.OnShow(paras);
+            wnd.OnShow(param1, param2, param3);
         }
         else
         {
-            ShowWnd(wndName, btop, paras);
+            ShowWnd(wndName, btop, param1, param2, param3);
         }
 
         return wnd;
@@ -268,10 +281,14 @@ public class UIManager : Singleton<UIManager>
     /// <summary>
     /// 切换到唯一窗口
     /// </summary>
-    public void SwitchStateByName(string name,bool bTop = true, params object[] paras)
+    public void SwitchStateByName(string name, bool bTop = true)
+    {
+        SwitchStateByName(name, bTop);
+    }
+    public void SwitchStateByName<T, U, X>(string name,bool bTop , T param1, U param2, X param3)
     {
         CloseAllWnd();
-        PopUpWindow(name, bTop, WndLayer.wnd, paras);
+        PopUpWindow(name, bTop, WndLayer.wnd, param1,param2,param3);
     }
     /// <summary>
     /// 根据窗口名字隐藏窗口
@@ -294,16 +311,20 @@ public class UIManager : Singleton<UIManager>
             wnd.OnDisable();
         }
     }
-    /// >= 0sum--ry>
+    /// <summary>
     /// 根据窗口名字显示窗口
     /// </summary>
     /// <param name="name"></param>
     /// <param name="btop"></param>
     /// <param name="paras"></param>
-    public void ShowWnd(string name, bool btop = true, params object[] paras)
+    public void ShowWnd(string name, bool btop = true)
+    {
+        ShowWnd<object,object,object>(name, btop,null,null,null );
+    }
+    public void ShowWnd<T, U, X>(string name, bool btop , T param1, U param2, X param3)
     {
         Window wnd = FindWndByName<Window>(name);
-        ShowWnd(wnd, btop, paras);
+        ShowWnd(wnd, btop, param1,param2,param3);
     }
     /// <summary>
     /// 根据窗口对象显示窗口
@@ -311,7 +332,7 @@ public class UIManager : Singleton<UIManager>
     /// <param name="wnd"></param>
     /// <param name="btop"></param>
     /// <param name="paras"></param>
-    public void ShowWnd(Window wnd, bool btop = true, params object[] paras)
+    public void ShowWnd<T, U, X>(Window wnd, bool btop , T param1, U param2, X param3)
     {
         if (wnd != null)
         {
@@ -330,7 +351,7 @@ public class UIManager : Singleton<UIManager>
             {
                 wnd.GameObject.transform.SetAsLastSibling();
             }
-            wnd.OnShow(paras);
+            wnd.OnShow(param1, param2, param3);
         }
     }
     /// <summary>

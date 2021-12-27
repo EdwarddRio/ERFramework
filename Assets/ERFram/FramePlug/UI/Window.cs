@@ -32,15 +32,14 @@ public class Window
     protected List<Toggle> m_AllToggle = new List<Toggle>();
 
     //消息传递
-    public virtual bool OnMessage(UIMsgID uIMsgID, params object[] paras)
+    public virtual bool OnMessage<T,U,X>(UIMsgID uIMsgID, T param1, U param2, X param3)
     {
         return true;
     }
-
-    //初始胡调用
-    public virtual void Awake(params object[] paralist) { }
+    //初始化调用
+    public virtual void Awake<T, U, X>(T param1, U param2, X param3) { }
     //显示就调用
-    public virtual void OnShow(params object[] paralist) { }
+    public virtual void OnShow<T, U, X>(T param1, U param2, X param3) { }
 
     public virtual void OnDisable() { }
 

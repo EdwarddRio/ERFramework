@@ -7,7 +7,7 @@ public class LoadingUI : Window
     private LoadingPanel m_MainPanel;
     private string m_SceneName;
     private bool m_LoadOtherSceneFinish = false;
-    public override void Awake(params object[] paralist)
+    public override void Awake<T, U, X>(T param1, U param2, X param3)
     {
         m_MainPanel = GameObject.GetComponent<LoadingPanel>();
         if (UnityEngine.Object.ReferenceEquals(m_MainPanel, null))
@@ -15,9 +15,9 @@ public class LoadingUI : Window
             Debug.LogError("cant getComponent :LoadingPanel");
             return;
         }
-        m_SceneName = (string)paralist[0];
+        m_SceneName = param1 as string;
     }
-    public override void OnShow(params object[] paralist)
+    public override void OnShow<T, U, X>(T param1, U param2, X param3)
     {
         m_LoadOtherSceneFinish = false;
     }
