@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+
 public class ERFramework : MonoSingleton<ERFramework>
 {
     protected override void OnAwake()
@@ -39,7 +40,7 @@ public class ERFramework : MonoSingleton<ERFramework>
     {
         UIManager.Instance.OnUpdate();
         DownmgrNative.Instance.Update();
-
+        MessageDispatcher.Instance.Update();
     }
     /// <summary>
     /// 进入主场景
@@ -56,6 +57,9 @@ public class ERFramework : MonoSingleton<ERFramework>
         ABSysManager.Instance.SaveCacheVerFile(true);
         //清理下载任务，关闭文件流
         DownmgrNative.Instance.ClearTask();
+        //清理消息分发器
+        MessageDispatcher.Instance.ClearMessages();
+        MessageDispatcher.Instance.ClearListeners();
 #if UNITY_EDITOR
         ResourceManager.Instance.ClearCache();
         Resources.UnloadUnusedAssets();
