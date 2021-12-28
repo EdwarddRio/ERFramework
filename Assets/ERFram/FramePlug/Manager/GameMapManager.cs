@@ -62,10 +62,7 @@ public class GameMapManager : Singleton<GameMapManager>
     /// <returns></returns>
     protected IEnumerator LoadSceneAsync(string name)
     {
-        if (LoadSceneEnterCallBack !=null)
-        {
-            LoadSceneEnterCallBack();
-        }
+        LoadSceneEnterCallBack?.Invoke();
         ClearCache();
         AllreadyLoadScene = false;
         AsyncOperation unLoadScene= SceneManager.LoadSceneAsync(ConStr.EMPTYSCENE, LoadSceneMode.Single);
@@ -140,10 +137,7 @@ public class GameMapManager : Singleton<GameMapManager>
         }
 
         //完成的回调
-        if (LoadSceneOverCallBack != null)
-        {
-            LoadSceneOverCallBack();
-        }
+        LoadSceneOverCallBack?.Invoke();
 
         ClearAllCallBack();
         //联动loading 关闭界面结束协程

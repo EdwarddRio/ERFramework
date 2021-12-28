@@ -792,10 +792,7 @@ public class ResourceManager : Singleton<ResourceManager>
         //在缓存内，直接用就完事了
         if (item != null)
         {
-            if (dealFinish != null)
-            {
-                dealFinish(path, item.m_Obj, param1, param2, param3);
-            }
+            dealFinish?.Invoke(path, item.m_Obj, param1, param2, param3);
             return;
         }
 
@@ -836,10 +833,7 @@ public class ResourceManager : Singleton<ResourceManager>
         if (item != null)
         {
             resObj.m_ResItem = item;
-            if (dealfinish != null)
-            {
-                dealfinish(path, resObj);
-            }
+            dealfinish?.Invoke(path, resObj);
             return;
         }
 

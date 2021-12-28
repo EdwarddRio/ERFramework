@@ -71,7 +71,7 @@ public abstract class TableManager<T, U> : Singleton<U>, ITableManager where T :
         int itemIndex;
         if (mKeyItemMap.TryGetValue(key, out itemIndex))
             return mItemArray[itemIndex];
-        return default(T);
+        return default;
     }
 
     public bool ContainsItem(int key)
@@ -89,7 +89,7 @@ public abstract class TableManager<T, U> : Singleton<U>, ITableManager where T :
     {
         if (mItemArray.Length > 0)
             return mItemArray[0];
-        return default(T);
+        return default;
     }
 
     public int GetAllCount()

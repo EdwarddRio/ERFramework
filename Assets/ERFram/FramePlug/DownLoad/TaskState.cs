@@ -10,9 +10,9 @@ public class TaskState
 
     public void Clear()
     {
-        taskcount = DownmgrNative.Instance.taskCount + DownmgrNative.Instance.runnerCount;
+        taskcount = DownmgrNative.Instance.TaskCount + DownmgrNative.Instance.RunnerCount;
         //tasksize = 0;
-        downloadcount = DownmgrNative.Instance.runnerCount;
+        downloadcount = DownmgrNative.Instance.RunnerCount;
         //downloadsize = 0;
     }
 

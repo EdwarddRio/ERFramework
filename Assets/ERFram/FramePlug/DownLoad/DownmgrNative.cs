@@ -19,22 +19,22 @@ public class DownmgrNative : Singleton<DownmgrNative>
     protected float runnerDownSpeed = 0;
     protected float runnerDownSize = 0;
     public bool GetRunnerDownSize { private get; set; } = false;
-    public int taskMaxCount { get; private set; }
+    public int TaskMaxCount { get; private set; }
     //用来获取hash值
-    public System.Security.Cryptography.SHA1Managed sha1 { get; private set; }
-    public TaskState taskState { get; private set; }
-    public int taskCount { get { return task.Count; } }
-    public int runnerCount { get { return runners.Count; } }
+    public System.Security.Cryptography.SHA1Managed Sha1 { get; private set; }
+    public TaskState TaskStateObj { get; private set; }
+    public int TaskCount { get { return task.Count; } }
+    public int RunnerCount { get { return runners.Count; } }
 
     public DownmgrNative()
     {
-        sha1 = new System.Security.Cryptography.SHA1Managed();
-        taskState = new TaskState();
+        Sha1 = new System.Security.Cryptography.SHA1Managed();
+        TaskStateObj = new TaskState();
 
     }
     public string GetHash(byte[] datas)
     {
-        return Convert.ToBase64String(sha1.ComputeHash(datas));
+        return Convert.ToBase64String(Sha1.ComputeHash(datas));
     }
 
     public float GetProgress(string file)
@@ -91,9 +91,9 @@ public class DownmgrNative : Singleton<DownmgrNative>
         }
 
         //处理可多线加载的任务
-        if (runners.Count < taskMaxCount && task.Count > 0)
+        if (runners.Count < TaskMaxCount && task.Count > 0)
         {
-            int count = Math.Min(taskMaxCount - runners.Count, task.Count);
+            int count = Math.Min(TaskMaxCount - runners.Count, task.Count);
             for (int i = 0; i < count; i++)
             {
                 DownTaskRunner downTaskRunner = m_DownTaskRunnerPool.Spawn(true);
@@ -126,7 +126,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
 
                     cur.Abort();
 
-                    taskState.downloadcount++;
+                    TaskStateObj.downloadcount++;
 
                     if (cur.task.onProgress != null)
                     {
@@ -148,7 +148,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
                 else
                 {
                     //下载成功
-                    taskState.downloadcount++;
+                    TaskStateObj.downloadcount++;
                     if (cur.task.onProgress != null)
                     {
                         cur.task.OnProgress(cur.www.downloadProgress);
@@ -189,7 +189,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
                 if (cur.Update(Time.deltaTime))
                 {
                     //超过三次拉取结束
-                    taskState.downloadcount++;
+                    TaskStateObj.downloadcount++;
                     if (cur.task.onProgress != null)
                     {
                         cur.task.OnProgress(cur.www.downloadProgress);
@@ -346,7 +346,7 @@ public class DownmgrNative : Singleton<DownmgrNative>
 
             taskList.Add(url, down);
             task.Enqueue(down);
-            taskState.taskcount++;
+            TaskStateObj.taskcount++;
             return down;
         }
         else
@@ -384,17 +384,14 @@ public class DownmgrNative : Singleton<DownmgrNative>
     public void BeginInit(Action onInit, int _taskMaxCount = 5)
     {
         Debug.LogFormat("DownmgrNative TaskMaxCount {0}", _taskMaxCount);
-        this.taskMaxCount = _taskMaxCount;
+        this.TaskMaxCount = _taskMaxCount;
 
-        
-        if (onInit !=null)
-        {
-            onInit();
-        }
+
+        onInit?.Invoke();
     }
     public override string ToString()
     {
-        return string.Format("[ResmgrNative loading status] running:{0} - task:{1} - frametask:{2}", runners.Count, task.Count + runners.Count);
+        return string.Format("[ResmgrNative loading status] running:{0} - task:{1}", runners.Count, task.Count + runners.Count);
     }
     /// <summary>
     /// 判定下载失败还是成功

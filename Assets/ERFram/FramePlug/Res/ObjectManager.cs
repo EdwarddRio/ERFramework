@@ -298,10 +298,7 @@ public class ObjectManager : Singleton<ObjectManager>
                 resObj.m_CloneObj.transform.SetParent(SceneTrs, false);
             }
 
-            if (dealFinish != null)
-            {
-                dealFinish(path, resObj.m_CloneObj, param1, param2, param3);
-            }
+            dealFinish?.Invoke(path, resObj.m_CloneObj, param1, param2, param3);
 
             return resObj.m_Guid;
         }

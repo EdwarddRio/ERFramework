@@ -56,7 +56,7 @@ public abstract class TableCollectionManager<T, U> : Singleton<U>, ITableManager
         int CollectionIndex;
         if (mKeyCollectionMap.TryGetValue(key, out CollectionIndex))
             return mItemCollection[CollectionIndex];
-        return default(List<T>);
+        return default;
     }
 	
     // get the Collection.

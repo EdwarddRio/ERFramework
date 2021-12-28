@@ -87,8 +87,6 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
         }
 
         m_MessageHandlers.Clear();
-        m_ListenerAdds.Clear();
-        m_ListenerRemoves.Clear();
     }
     /// <summary>
     /// 添加消息监听函数
@@ -104,7 +102,7 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
     /// </summary>
     /// <param name="messageType">消息key</param>
     /// <param name="handler">消息事件</param>
-    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏游戏整体循环。列表增加时是在分发器的循环中)</param>
+    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏当前帧循环到的函数执行。列表增加时是在分发器的循环中)</param>
     public void AddListener(string messageType, MessageHandler handler, bool immediate)
     {
         AddListener(messageType, string.Empty, handler, immediate);
@@ -136,7 +134,7 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
     /// <param name="owner">获取添加者的名字</param>
     /// <param name="messageType">消息key</param>
     /// <param name="handler">消息事件</param>
-    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏游戏整体循环。列表增加时是在分发器的循环中)</param>
+    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏当前帧循环到的函数执行。列表增加时是在分发器的循环中)</param>
     public void AddListener(UnityEngine.Object owner, string messageType, MessageHandler handler, bool immediate)
     {
         if (owner == null)
@@ -158,7 +156,7 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
     /// <param name="messageType">消息key</param>
     /// <param name="callerStr">过滤器，为空字符串不限制</param>
     /// <param name="handler">消息事件</param>
-    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏游戏整体循环。列表增加时是在分发器的循环中)</param>
+    /// <param name="immediate">是否直接加入监听列表(false:不立即加入列表，不破坏当前帧循环到的函数执行。列表增加时是在分发器的循环中)</param>
     public void AddListener(string messageType, string callerStr, MessageHandler handler, bool immediate)
     {
         MessageListenerDefinitionER listener = m_MessageListenerDefinitionERPool.Spawn(true);
@@ -189,14 +187,14 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
             recipientDictionary = new Dictionary<string, MessageHandler>();
             m_MessageHandlers.Add(listener.MessageType, recipientDictionary);
         }
-        MessageHandler messageHandler = null;
 
-        if (!recipientDictionary.TryGetValue(listener.CallerStr, out messageHandler) || messageHandler == null)
+        if (!recipientDictionary.ContainsKey(listener.CallerStr))
         {
             recipientDictionary.Add(listener.CallerStr, null);
         }
         //事件链
-        messageHandler += listener.Handler;
+        recipientDictionary[listener.CallerStr] += listener.Handler;
+        
 
         MessageListenerDefinitionRest(listener);
     }
@@ -295,16 +293,14 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
         //在字典内
         if (m_MessageHandlers.TryGetValue(listener.MessageType, out recipientDictionary) && recipientDictionary != null)
         {
-            MessageHandler messageHandler = null;
-
-            if (recipientDictionary.TryGetValue(listener.CallerStr, out messageHandler))
+            if (recipientDictionary.ContainsKey(listener.CallerStr))
             {
-                if (messageHandler != null)
+                if (recipientDictionary[listener.CallerStr] != null)
                 {
-                    messageHandler -= listener.Handler;
+                    recipientDictionary[listener.CallerStr] -= listener.Handler;
                 }
 
-                if (messageHandler == null)
+                if (recipientDictionary[listener.CallerStr] == null)
                 {
                     recipientDictionary.Remove(listener.CallerStr);
                 }
@@ -390,6 +386,29 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
     /// <param name="sender">发送者</param>
     /// <param name="type">消息名</param>
     /// <param name="param1">传参1</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, string type, object param1, float delay)
+    {
+        SendMessage(sender, type, param1, null, null, delay);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
+    /// <param name="param2">传参2</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, string type, object param1, object param2,float delay)
+    {
+        SendMessage(sender, type, param1, param2, null, delay);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
     /// <param name="param2">传参2</param>
     /// <param name="param3">传参3</param>
     /// <param name="delay">延时</param>
@@ -413,6 +432,31 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
     /// <param name="recipient">接收者(对象)</param>
     /// <param name="type">消息名</param>
     /// <param name="param1">传参1</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, object recipient, string type, object param1, float delay)
+    {
+        SendMessage(sender, recipient, type, param1, null, null, delay);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="recipient">接收者(对象)</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
+    /// <param name="param2">传参2</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, object recipient, string type, object param1, object param2, float delay)
+    {
+        SendMessage(sender, recipient, type, param1, param2, null, delay);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="recipient">接收者(对象)</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
     /// <param name="param2">传参2</param>
     /// <param name="param3">传参3</param>
     /// <param name="delay">延时</param>
@@ -428,6 +472,31 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
         message.Delay = delay;
 
         SendMessage(message);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="recipient">接收者(直接用字符串)</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, string recipient, string type, object param1, float delay)
+    {
+        SendMessage(sender, recipient, type, param1, null, null, delay);
+    }
+    /// <summary>
+    /// 通过消息调用函数
+    /// </summary>
+    /// <param name="sender">发送者</param>
+    /// <param name="recipient">接收者(直接用字符串)</param>
+    /// <param name="type">消息名</param>
+    /// <param name="param1">传参1</param>
+    /// <param name="param2">传参2</param>
+    /// <param name="delay">延时</param>
+    public void SendMessage(object sender, string recipient, string type, object param1, object param2,  float delay)
+    {
+        SendMessage(sender, recipient, type, param1, param2, null, delay);
     }
     /// <summary>
     /// 通过消息调用函数
@@ -534,6 +603,13 @@ public class MessageDispatcher : Singleton<MessageDispatcher>
         for (int i = 0; i < m_Messages.Count; i++)
         {
             MessageER message = m_Messages[i];
+
+            //说明添加时就是小于0的，放到下一帧再去调用
+            if (message.Delay < 0)
+            {
+                message.Delay = 0;
+                continue;
+            }
 
             message.Delay -= Time.deltaTime;
             if (message.Delay < 0)

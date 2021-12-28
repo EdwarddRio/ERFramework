@@ -32,15 +32,19 @@ public class ERFramework : MonoSingleton<ERFramework>
         UIManager.Instance.Register<LoadingUI>(ConStr.LOADINGPANEL);
         UIManager.Instance.Register(ConStr.CHECKDOWNLOADPANEL, "CheckDownloadUI");
     }
-    void Start ()
+    public int a = 1;
+    public int b = 2;
+
+    void Start()
     {
 
     }
-	void Update ()
+    void Update ()
     {
         UIManager.Instance.OnUpdate();
         DownmgrNative.Instance.Update();
         MessageDispatcher.Instance.Update();
+        DelayFuncManager.Instance.Update();
     }
     /// <summary>
     /// 进入主场景
@@ -60,6 +64,8 @@ public class ERFramework : MonoSingleton<ERFramework>
         //清理消息分发器
         MessageDispatcher.Instance.ClearMessages();
         MessageDispatcher.Instance.ClearListeners();
+        //清理延时事件
+        DelayFuncManager.Instance.ClearListeners();
 #if UNITY_EDITOR
         ResourceManager.Instance.ClearCache();
         Resources.UnloadUnusedAssets();

@@ -94,7 +94,7 @@ public static class TableParser
     {
         Type objType = typeof(T);
 
-        string[] members = memberLine.Split("\t".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        string[] members = ParseLine(memberLine) ;
 
         Dictionary<int, FieldInfo> propertyInfos = new Dictionary<int, FieldInfo>();
         for (int i = 0; i < members.Length; i++)

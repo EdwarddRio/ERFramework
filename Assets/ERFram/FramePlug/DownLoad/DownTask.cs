@@ -55,19 +55,13 @@ public class DownTask
     public void OnProgress(float progress)
     {
         this.progress = progress;
-        if (onProgress != null)
-        {
-            onProgress(progress, tag);
-        }
+        onProgress?.Invoke(progress, tag);
     }
 
     public void OnLoad(UnityWebRequest www)
     {
         this.isDone = true;
-        if (onload != null)
-        {
-            onload(www, tag);
-        }
+        onload?.Invoke(www, tag);
     }
 
 
@@ -421,10 +415,7 @@ public class DownloadTaskHandler : DownloadHandlerScript
         TotalFileSize += mLocalFileSize;
         LastTime = UnityEngine.Time.time;
         LastDataSize = CurFileSize;
-        if (StartDownloadEvent != null)
-        {
-            StartDownloadEvent();
-        }
+        StartDownloadEvent?.Invoke();
     }
 
     //在2017.3.0(包括该版本)以下的正式版本中存在一个性能上的问题

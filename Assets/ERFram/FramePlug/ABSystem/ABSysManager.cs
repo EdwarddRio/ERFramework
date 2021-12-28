@@ -64,7 +64,7 @@ public class ABSysManager : Singleton<ABSysManager>
     /// </summary>
     public void ReDownABEvent()
     {
-        List<ABFileInfo> ablistTemp = new List<ABFileInfo>();
+        List<ABFileInfo> ablistTemp =new List<ABFileInfo>();
 
         int listCount = abFileDownloadList.Count;
         for (int i = 0; i < listCount; i++)
@@ -174,8 +174,8 @@ public class ABSysManager : Singleton<ABSysManager>
                 aBFileInfo.m_Hash = infos[0];
                 aBFileInfo.m_FileLength = long.Parse(infos[1]);
                 aBFileInfo.m_FileLengthMB = aBFileInfo.m_FileLength / 1024 / 1024f;
-                aBFileInfo.m_InCacheAsset = (infos.Length <= 2 || infos[2] == null) ? false : (string.Equals(infos[2], m_inCacheTrue) ? true : false);
-                aBFileInfo.m_Upgrade = (infos.Length <= 3 || infos[3] == null) ? false : (string.Equals(infos[3], m_inCacheTrue) ? true : false);
+                aBFileInfo.m_InCacheAsset = infos.Length > 2 && infos[2] != null && (string.Equals(infos[2], m_inCacheTrue));
+                aBFileInfo.m_Upgrade = infos.Length > 3 && infos[3] != null && (string.Equals(infos[3], m_inCacheTrue));
                 //TODO需要安卓输出
                 //Debug.LogErrorFormat("CheckVerionSAAndPer=>aBFileInfo  : name:{0}  fileLenght:{2} inCache:{3}  upgrade:{4}  hash:{1} ", aBFileInfo.m_Name, aBFileInfo.m_Hash, aBFileInfo.m_FileLength, aBFileInfo.m_InCacheAsset, aBFileInfo.m_Upgrade);
                 ABFileInfoDic.Add(fh.Key, aBFileInfo);
