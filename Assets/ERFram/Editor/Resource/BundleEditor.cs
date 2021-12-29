@@ -264,6 +264,32 @@ public class BundleEditor
 
         string fullName = string.Empty;
         string fileName = string.Empty;
+
+        //对比加密的ab包是否有已经不用了的
+        DirectoryInfo encrydirection = new DirectoryInfo(m_BundleTargetEncryPath);
+        FileInfo[] encryfiles = encrydirection.GetFiles("*", SearchOption.AllDirectories);
+        for (int encI = 0; encI < encryfiles.Length; encI++)
+        {
+            fileName = encryfiles[encI].Name;
+            bool needDelete = true;
+            for (int fI = 0; fI < files.Length; fI++)
+            {
+                if (string.Equals(fileName,files[fI].Name))
+                {
+                    needDelete = false;
+                    break;
+                }
+            }
+            if (needDelete)
+            {
+                Debug.Log("加密文件夹：此AB包已经被删或者改名了：" + encryfiles[encI].Name);
+
+                GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
+                GameUtility.SafeDeleteFile(encryfiles[encI].FullName + ".manifest");
+            }
+        }
+
+
         byte[] secret = new byte[Const.ABEncryptLen];
 
         for (int i = 0; i < files.Length; i++)
