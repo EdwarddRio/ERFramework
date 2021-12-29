@@ -5,6 +5,13 @@ using UnityEngine;
 
 public class GameTool : Editor
 {
+
+    [MenuItem("Tools/清除所有本地缓存数据", false, 2)]
+    protected static void DeleteAllPlayerPrefs(MenuCommand command)
+    {
+        PlayerPrefs.DeleteAll();
+    }
+
     [MenuItem("Tools/打开文件夹/CacheDir")]
     protected static void OpenPersistent(MenuCommand command)
     {
@@ -30,7 +37,7 @@ public class GameTool : Editor
         Application.OpenURL(Const.ABLoadPathByEditor);
     }
 
-    [MenuItem("Tools/说明", false, 2)]
+    [MenuItem("Tools/说明", false, 3)]
     public static void OpenInstruction()
     {
         EditorWindow.GetWindow<InstructionsWindow>(true, "使用说明", true).Show();
@@ -66,6 +73,7 @@ public class InstructionsWindow : EditorWindow
       + "离线数据：\n"
       + "    就是将预设体默认的一些配置保存下来，回收到对象池内时还原成默认配置\n"
 
+      + "\n运行前必须打包一次，并且将ab包复制到LocalPath\n"
 
       + "\n框架内的一些配置属性，在Const脚本内。\n";
     }
