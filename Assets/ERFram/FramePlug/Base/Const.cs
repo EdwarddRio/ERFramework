@@ -58,7 +58,7 @@ public class Const
     {
         get
         {
-            return  Application.streamingAssetsPath+ "/ABDir/";;
+            return  Application.streamingAssetsPath+ "/ABDir/";
         }
     }
     /// <summary>

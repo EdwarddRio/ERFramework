@@ -540,7 +540,7 @@ public class BundleEditor
             for (int i = 0; i < sAFiles.Length; i++)
             {
                 strTemp = sAFiles[i];
-                strTemp = strTemp.Substring(abInSAPath.Length + 1);
+                strTemp = strTemp.Substring(abInSAPath.Length);
                 strTemp = strTemp.Replace('\\', '/');
                 sAFileNames.Add(strTemp);
             }
