@@ -32,9 +32,6 @@ public class ERFramework : MonoSingleton<ERFramework>
         UIManager.Instance.Register<LoadingUI>(ConStr.LOADINGPANEL);
         UIManager.Instance.Register(ConStr.CHECKDOWNLOADPANEL, "CheckDownloadUI");
     }
-    public int a = 1;
-    public int b = 2;
-
     void Start()
     {
 

@@ -64,20 +64,23 @@ public class ABSysManager : Singleton<ABSysManager>
     /// </summary>
     public void ReDownABEvent()
     {
-        List<ABFileInfo> ablistTemp =new List<ABFileInfo>();
+        //重新下载的话置为false 万一下载到一半退出 可以保存
+        m_isSaveCacheVerInfo = false;
+
+        List<ABFileInfo> ablistTemp = new List<ABFileInfo>();
 
         int listCount = abFileDownloadList.Count;
         for (int i = 0; i < listCount; i++)
         {
             ABFileInfo aBFileInfo = abFileDownloadList[i];
-            if (aBFileInfo.m_FileLength == 0 )
+            if (aBFileInfo.m_FileLength == 0)
             {
                 aBFileInfo.m_DownProgress = 0;
                 ablistTemp.Add(aBFileInfo);
             }
             else
             {
-                TotalDownSize -= (aBFileInfo.m_FileLengthMB );
+                TotalDownSize -= (aBFileInfo.m_FileLengthMB);
             }
         }
         abFileDownloadList = ablistTemp;
