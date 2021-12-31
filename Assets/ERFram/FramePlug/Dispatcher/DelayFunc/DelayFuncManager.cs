@@ -312,7 +312,6 @@ public class DelayFuncManager : Singleton<DelayFuncManager>
 
         //修改状态 等待从字典移除
         listener.IsDone = true;
-        DelayFuncDefinitionRest(listener);
         DelayFuncMessageRest(message);
     }
 
@@ -337,6 +336,8 @@ public class DelayFuncManager : Singleton<DelayFuncManager>
         //移除已响应过的监听
         for (int i = m_DelayFuncLisRemoves.Count - 1; i >= 0; i--)
         {
+            DelayFuncDefinitionRest(m_DelayFuncListeners[m_DelayFuncLisRemoves[i]]);
+
             m_DelayFuncListeners.Remove(m_DelayFuncLisRemoves[i]);
         }
 
