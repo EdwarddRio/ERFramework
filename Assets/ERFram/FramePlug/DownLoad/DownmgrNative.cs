@@ -351,8 +351,8 @@ public class DownmgrNative : Singleton<DownmgrNative>
         }
         else
         {
-            taskList[url].onload = onLoad;
-            taskList[url].onProgress = onProgress;
+            taskList[url].onload += onLoad;
+            taskList[url].onProgress += onProgress;
             return taskList[url];
         }
     }

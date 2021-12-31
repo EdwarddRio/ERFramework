@@ -14,6 +14,9 @@ using UnityEngine.Networking;
  * 如果找不到则就用前一步状态的信息
  * 最后将信息写到本地缓存区
  */
+
+//TODO 没有检查如果ab包减少的对应策略，缓存区内的版本文件没有加入如果ab包是被删除不要了 怎么办
+
 public class ABSysManager : Singleton<ABSysManager>
 {
     //ab包文件的信息字典
@@ -41,8 +44,6 @@ public class ABSysManager : Singleton<ABSysManager>
     protected const char m_separator = '@';
     //正确判定字符
     protected const string m_inCacheTrue = "1";
-    //ab文件的manifest后缀 提取出来
-    protected const string m_manifestExten = ".manifest";
     //检查下载界面的ab名称
     protected const string m_checkdownloadpanel = "checkdownloadpanel";
     //远程版本信息
@@ -308,41 +309,7 @@ public class ABSysManager : Singleton<ABSysManager>
                 TotalDownSize += (aBFileInfo.m_FileLengthMB);
             }
         }
-        //遍历需要更新的文件，如果文件或者.manifest单独有一个更新的话 判定另外一个是不是在缓存区内，如果不是的话 也需要加入下载，配对使用的
-        int downListCount = abFileDownloadList == null ? 0 : abFileDownloadList.Count;
-        for (int i = 0; i < downListCount; i++)
-        {
-            ABFileInfo aBFITemp = abFileDownloadList[i];
-            string abOtherName = string.Empty;
-            if (aBFITemp.m_Name.IndexOf(m_manifestExten) >0)
-            {
-                abOtherName = aBFITemp.m_Name.Replace(m_manifestExten, "");
-            }
-            else
-            {
-                abOtherName = aBFITemp.m_Name + m_manifestExten;
-            }
-
-            ABFileInfo aBFileInfo = null;
-            if (!ABFileInfoDic.TryGetValue(abOtherName, out aBFileInfo) || aBFileInfo==null) {
-                Debug.LogErrorFormat("CheckNeedDownFiles=>Get other match file is null !!: name:{0} ", abOtherName);
-                continue;
-            }
-            //不需要升级并且不在缓存文件区域的 也需要加入下载列表
-            if (!aBFileInfo.m_Upgrade && !aBFileInfo.m_InCacheAsset)
-            {
-                aBFileInfo.m_InCacheAsset = true;
-                aBFileInfo.m_Upgrade = true;
-
-                abFileDownloadList.Add(aBFileInfo);
-                AllNeedDownNum += 1;
-                if (aBFileInfo.m_FileLength == 0)
-                {
-                    Debug.LogErrorFormat("CheckNeedDownFiles=>aBFileInfo=> m_FileLength is 0!!: name:{0} ", aBFileInfo.m_Name);
-                }
-                TotalDownSize += (aBFileInfo.m_FileLengthMB);
-            }
-        }
+      
         Debug.LogFormat("CheckNeedDownFiles=> all need down file num:{0}  size:{1}", AllNeedDownNum, TotalDownSize);
     }
     /// <summary>
@@ -480,13 +447,6 @@ public class ABSysManager : Singleton<ABSysManager>
 
         string destFilePathName = Const.ABCachePath + m_checkdownloadpanel;
         string tempFilePathName = destFilePathName + Const.TempFileName;
-        if (File.Exists(tempFilePathName))
-        {
-            GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);
-        }
-
-        destFilePathName = Const.ABCachePath + m_checkdownloadpanel + m_manifestExten;
-        tempFilePathName = destFilePathName + Const.TempFileName;
         if (File.Exists(tempFilePathName))
         {
             GameUtility.SafeRenameFile(tempFilePathName, destFilePathName);

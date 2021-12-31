@@ -290,7 +290,7 @@ public class BundleEditor
         }
 
 
-        byte[] secret = new byte[Const.ABEncryptLen];
+        byte[] secret = new byte[5] { 214, 15, 174, 5, 98 };
 
         for (int i = 0; i < files.Length; i++)
         {
@@ -300,9 +300,9 @@ public class BundleEditor
             {
                 continue;
             }
+            //manifest不需要
             if (fileName.EndsWith(".manifest"))
             {
-                GameUtility.SafeCopyFile(fullName, Path.Combine(m_BundleTargetEncryPath, fileName));
                 continue;
             }
             if (files[i].LastWriteTime.Ticks <  m_buildStartTicks )
@@ -317,11 +317,11 @@ public class BundleEditor
             //最后修改时间 大于等于开始时候的ticks 说明这个包有修改 重新加密
             EditorUtility.DisplayProgressBar("加密AB包", "名字：" + fileName, i * 1.0f / files.Length);
             Debug.Log("加密AB包，名字:" + fileName);
-            //随机加密byte
-            for (int rI = 0; rI < secret.Length; rI++)
-            {
-                secret[rI] = (byte)Random.Range(0, 256);
-            }
+            ////随机加密byte
+            //for (int rI = 0; rI < secret.Length; rI++)
+            //{
+            //    secret[rI] = (byte)Random.Range(0, 256);
+            //}
             //加密byte写入开头
             byte[] temp = File.ReadAllBytes(fullName);
             byte[] newTemp = new byte[(int)Const.ABEncryptLen + temp.Length];
