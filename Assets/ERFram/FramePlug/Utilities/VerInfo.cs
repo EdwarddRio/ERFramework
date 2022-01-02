@@ -11,7 +11,7 @@ public class VerInfo
 
     public Dictionary<string, string> filehash = new Dictionary<string, string>();
 
-    static System.Security.Cryptography.SHA1CryptoServiceProvider osha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+    public static System.Security.Cryptography.SHA1CryptoServiceProvider osha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider();
     public void GenHash()
     {
         string[] files = System.IO.Directory.GetFiles(this.path, "*.*", System.IO.SearchOption.AllDirectories);
@@ -22,8 +22,12 @@ public class VerInfo
                 f.IndexOf(".meta") >= 0
                 ||
                 f.IndexOf(".db") >= 0 
-                ||
+                || 
                 f.IndexOf(".DS_Store") >= 0
+                ||
+                f.IndexOf(".manifest") >= 0
+                || 
+                f.IndexOf(Const.ABENCRYPT_INFO) >= 0
                 ) continue;
             GenHashOne(f);
         }
@@ -139,6 +143,91 @@ public class VerInfo
         }
 
         System.IO.File.WriteAllText(System.IO.Path.Combine(path, Const.FILE_VERSION), outstr, Encoding.UTF8);
+    }
+
+}
+
+
+//记录加密的ab包的信息。
+public class ABEncryptInfo
+{
+    //读取非加密处的
+    public string genPath;
+    public string path;
+
+    public Dictionary<string, string> filehash = new Dictionary<string, string>();
+    
+    public void GenHash()
+    {
+        string[] files = System.IO.Directory.GetFiles(this.genPath, "*.*", System.IO.SearchOption.AllDirectories);
+        foreach (var f in files)
+        {
+            if (f.IndexOf(".crc.txt") >= 0
+                ||
+                f.IndexOf(".meta") >= 0
+                ||
+                f.IndexOf(".db") >= 0
+                ||
+                f.IndexOf(".DS_Store") >= 0
+                ||
+                f.IndexOf(".manifest") >= 0
+                ||
+                f.IndexOf(Const.FILE_VERSION) >= 0
+                
+                ) continue;
+            GenHashOne(f);
+        }
+    }
+    public void GenHashOne(string filename)
+    {
+        using (System.IO.Stream s = System.IO.File.OpenRead(filename))
+        {
+            var hash =  VerInfo.osha1.ComputeHash(s);
+            var shash = Convert.ToBase64String(hash) +"@";
+            filename = filename.Substring(genPath.Length + 1);
+
+            filename = filename.Replace('\\', '/');
+            filehash[filename] = shash;
+        }
+    }
+    public static ABEncryptInfo Read(string path)
+    {
+        string fullPath = path + Const.ABENCRYPT_INFO;
+        if ( System.IO.File.Exists(fullPath) == false)
+        {
+            return null;
+        }
+        string txt = string.Empty;
+
+            txt = System.IO.File.ReadAllText(fullPath, Encoding.UTF8);
+
+        string[] lines = txt.Split(new string[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
+        ABEncryptInfo var = new ABEncryptInfo();
+        foreach (var l in lines)
+        {
+            if (l.IndexOf("FileCount:") <0)
+            {
+                var sp = l.Split('|');
+                if (sp.Length < 2)
+                {
+                    Debug.LogError("ABEncryptInfo Read text is Error  " + txt);
+                    return null;
+                }
+                var.filehash[sp[0]] = sp[1];
+            }
+        }
+        return var;
+    }
+    public void SaveToPath()
+    {
+        string outstr = "FileCount:" + filehash.Count + "\n";
+
+        foreach (var f in filehash)
+        {
+            outstr += f.Key + "|" + f.Value + "\n";
+        }
+
+        System.IO.File.WriteAllText(System.IO.Path.Combine(path, Const.ABENCRYPT_INFO), outstr, Encoding.UTF8);
     }
 
 }

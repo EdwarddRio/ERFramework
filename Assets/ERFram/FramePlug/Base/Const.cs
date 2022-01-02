@@ -32,6 +32,16 @@ public class Const
         }
     }
     /// <summary>
+    /// ab包加密信息
+    /// </summary>
+    public static string ABENCRYPT_INFO
+    {
+        get
+        {
+            return "abencrypt.info.txt";
+        }
+    }
+    /// <summary>
     /// ab包在StreamingAssets加载路径
     /// 在移动平台 streamingAssets内的文件 用下载方法来读取数据
     /// </summary>

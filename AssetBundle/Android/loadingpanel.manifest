@@ -3,10 +3,10 @@ CRC: 3336375224
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5ba34a32ab47ecc5422b404784dd2e2a
+    Hash: 8da05e9d05166255932c320847f56d06
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 52103ecc1578021b6d8ef6c18c806ebb
+    Hash: 78b97dfa2ffea6272a4993b28abfc37d
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -18,6 +18,8 @@ ClassTypes:
 - Class: 48
   Script: {instanceID: 0}
 - Class: 114
+  Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
@@ -25,8 +27,6 @@ ClassTypes:
   Script: {fileID: 11500000, guid: 88f1b604bed287a4d8c1c8ac23bcef62, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: f57b28759484e4e4e8c3deb4f5c31f8d, type: 3}
-- Class: 114
-  Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
 - Class: 115
   Script: {instanceID: 0}
 - Class: 128

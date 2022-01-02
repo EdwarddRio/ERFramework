@@ -75,6 +75,34 @@ public class GameUtility
             return false;
         }
     }
+    /// <summary>
+    /// 删除文件夹内的所有文件
+    /// </summary>
+    /// <param name="dirPath"></param>
+    /// <returns></returns>
+    public static bool SafeDeleteAllFileInDir(string dirPath)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(dirPath))
+            {
+                return true;
+            }
+
+            if (Directory.Exists(dirPath))
+            {
+                DeleteDirectory(dirPath);
+                Directory.CreateDirectory(dirPath);
+            }
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError(string.Format("SafeDeleteAllFileInDir failed! path = {0} with err: {1}", dirPath, ex.Message));
+            return false;
+        }
+    }
+
 
     public static void SafeCopyPath(string source, string target)
     {

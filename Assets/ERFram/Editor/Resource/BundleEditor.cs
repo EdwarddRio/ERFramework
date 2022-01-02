@@ -34,13 +34,10 @@ public class BundleEditor
     private static Dictionary<string, List<string>> m_AllPrefabDir = new Dictionary<string, List<string>>();
     //储存所有有效路径
     private static List<string> m_ConfigFil = new List<string>();
-    //开始打包时的时间ticks
-    private static long m_buildStartTicks;
 
     [MenuItem("Tools/打包", false, 1)]
     public static void Build()
     {
-        m_buildStartTicks = System.DateTime.Now.Ticks;
 
         m_ConfigFil.Clear();
         m_AllFileAB.Clear();
@@ -114,14 +111,12 @@ public class BundleEditor
             EditorUtility.DisplayProgressBar("清除AB包名", "名字：" + oldABNames[i], i * 1.0f / oldABNames.Length);
         }
 
-        //ab包加密
-        EncryptAB();
-
         //创建版本信息
-        CreateVersionFile();
+        VerInfo verInfo = CreateVersionFile();
 
+        //ab包加密
+        EncryptAB(verInfo);
 
-        m_buildStartTicks = 0;
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         EditorUtility.ClearProgressBar();
@@ -252,7 +247,7 @@ public class BundleEditor
     /// <summary>
     /// 加密ab包  防君子不防小人版
     /// </summary>
-    static void EncryptAB()
+    static void EncryptAB(VerInfo notEncryVer)
     {
         if (!Directory.Exists(m_BundleTargetEncryPath))
         {
@@ -266,31 +261,111 @@ public class BundleEditor
         string fileName = string.Empty;
 
         //对比加密的ab包是否有已经不用了的
+        ABEncryptInfo aBEncryptInfo = ABEncryptInfo.Read(m_BundleTargetEncryPath +"/");
+        if (aBEncryptInfo==null)
+        {
+            aBEncryptInfo = new ABEncryptInfo();
+            //加密包内不存在加密信息文件，直接删掉整个加密ab文件夹
+            GameUtility.SafeDeleteAllFileInDir(m_BundleTargetEncryPath);
+            aBEncryptInfo.genPath = m_BundleTargetPath;
+            aBEncryptInfo.GenHash();
+        }
+        List<string> needEncryFileNames = new List<string>();
+        List<string> notNeedChangeFiles = new List<string>();
+    
+        //对比hash值 有不同的/不存在的就删除
+        List<string> delFiles = new List<string>();
+        //加密的对比没加密的
+        foreach (KeyValuePair<string, string> keyValuePair in aBEncryptInfo.filehash)
+        {
+            string name = keyValuePair.Key;
+            string[] values = keyValuePair.Value.Split('@');
+            string notEnHash = values[0];
+            string enHash = values[1];
+
+            //非加密文件夹内的版本文件
+            string verValue = string.Empty;
+            if (!notEncryVer.filehash.TryGetValue(name, out verValue) || verValue == null || verValue == string.Empty)
+            {
+                Debug.Log("加密:在默认文件夹内，此文件找不到，删除：" + name);
+                delFiles.Add(name);
+                continue;
+            }
+            string verhash = notEncryVer.filehash[name].Split('@')[0];
+
+            if (verhash != notEnHash)
+            {
+                Debug.Log("加密:同名文件的默认hash不同了，删除并且重新加密：" + name);
+                delFiles.Add(name);
+                needEncryFileNames.Add(name);
+                continue;
+            }
+
+            if (enHash == string.Empty)
+            {
+                Debug.Log("加密:当前文件还未加密" + name);
+                needEncryFileNames.Add(name);
+                continue;
+            }
+            //余下的说没有问题 加入已检测正常的列表内
+            if (File.Exists(Path.Combine(BundleTargetEncryPath, name)))
+            {
+                notNeedChangeFiles.Add(name);
+            }
+            else
+            {
+                Debug.Log("加密:此文件不存在于文件夹内 加密：" + name);
+                needEncryFileNames.Add(name);
+            }
+        }
+        //没加密的对比加密的，找到要增加的
+        foreach (KeyValuePair<string, string> keyValuePair in notEncryVer.filehash)
+        {
+            string name = keyValuePair.Key;
+            if (name.Equals("allver.ver.txt") || notNeedChangeFiles.IndexOf(name) >= 0 || name.EndsWith(".manifest"))
+            {
+                continue;
+            }
+            string[] values = keyValuePair.Value.Split('@');
+            string verHash = values[0];
+            
+            //加密文件夹内的信息文件
+            string encryValue = string.Empty;
+            if (!aBEncryptInfo.filehash.TryGetValue(name, out encryValue) || encryValue == null || encryValue == string.Empty)
+            {
+                if (needEncryFileNames.IndexOf(name) < 0)
+                {
+                    Debug.Log("加密:在加密信息内 没找到的，需要加密：" + name);
+                    needEncryFileNames.Add(name);
+                    aBEncryptInfo.GenHashOne(Path.Combine(BundleTargetPath, name));
+                    continue;
+                }
+            }
+        }
+        
+        //读取一下加密包内的所有文件，然后对比有没有有问题的
         DirectoryInfo encrydirection = new DirectoryInfo(m_BundleTargetEncryPath);
         FileInfo[] encryfiles = encrydirection.GetFiles("*", SearchOption.AllDirectories);
+        
         for (int encI = 0; encI < encryfiles.Length; encI++)
         {
             fileName = encryfiles[encI].Name;
-            bool needDelete = true;
-            for (int fI = 0; fI < files.Length; fI++)
+            if (fileName.Equals(Const.FILE_VERSION) || fileName.Equals(Const.ABENCRYPT_INFO))
             {
-                if (string.Equals(fileName,files[fI].Name))
-                {
-                    needDelete = false;
-                    break;
-                }
+                continue;
             }
-            if (needDelete)
-            {
-                Debug.Log("加密文件夹：此AB包已经被删或者改名了：" + encryfiles[encI].Name);
 
+            if (delFiles.IndexOf(fileName) >=0 || needEncryFileNames.IndexOf(fileName) >= 0 )
+            {
                 GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
-                GameUtility.SafeDeleteFile(encryfiles[encI].FullName + ".manifest");
+            }else if (notNeedChangeFiles.IndexOf(fileName) <0)
+            {
+                GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
+                Debug.Log("加密：此文件不在需要删除和需加密列表内，同时也不在不需要改变列表内，说明是多余的：" + fileName);
             }
         }
 
-
-        byte[] secret = new byte[5] { 214, 15, 174, 5, 98 };
+        byte[] secret = new byte[Const.ABEncryptLen];
 
         for (int i = 0; i < files.Length; i++)
         {
@@ -305,23 +380,18 @@ public class BundleEditor
             {
                 continue;
             }
-            if (files[i].LastWriteTime.Ticks <  m_buildStartTicks )
+            if (needEncryFileNames.IndexOf(fileName)<0)
             {
-                //不需要加密 但是得判断下之前是否有加密的文件存在，否则还是得加密,存在就跳过
-                if (File.Exists(Path.Combine(m_BundleTargetEncryPath, fileName)))
-                {
-                    continue;
-                }
+                continue;
             }
-
-            //最后修改时间 大于等于开始时候的ticks 说明这个包有修改 重新加密
+            //这个包有修改 需要加密
             EditorUtility.DisplayProgressBar("加密AB包", "名字：" + fileName, i * 1.0f / files.Length);
             Debug.Log("加密AB包，名字:" + fileName);
-            ////随机加密byte
-            //for (int rI = 0; rI < secret.Length; rI++)
-            //{
-            //    secret[rI] = (byte)Random.Range(0, 256);
-            //}
+            //随机加密byte
+            for (int rI = 0; rI < secret.Length; rI++)
+            {
+                secret[rI] = (byte)Random.Range(0, 256);
+            }
             //加密byte写入开头
             byte[] temp = File.ReadAllBytes(fullName);
             byte[] newTemp = new byte[(int)Const.ABEncryptLen + temp.Length];
@@ -338,7 +408,17 @@ public class BundleEditor
             }
 
             File.WriteAllBytes(Path.Combine(m_BundleTargetEncryPath, fileName), newTemp);
+
+            string notEnHash = aBEncryptInfo.filehash[fileName].Split('@')[0];
+            string enHash = System.Convert.ToBase64String(VerInfo.osha1.ComputeHash(newTemp));
+
+            aBEncryptInfo.filehash[fileName] = notEnHash + "@" + enHash;
         }
+
+        GameUtility.SafeDeleteFile(Path.Combine(m_BundleTargetEncryPath, Const.ABENCRYPT_INFO));
+       
+        aBEncryptInfo.path = m_BundleTargetEncryPath;
+        aBEncryptInfo.SaveToPath();
 
         //创建版本信息
         CreateVersionFile(true);
@@ -419,7 +499,7 @@ public class BundleEditor
     /// <summary>
     /// 创建版本信息文件
     /// </summary>
-    static void CreateVersionFile(bool encry =false)
+    static VerInfo CreateVersionFile(bool encry =false)
     {
         string path = m_BundleTargetPath;
         if (encry)
@@ -439,6 +519,7 @@ public class BundleEditor
 
 
         Debug.Log("版本文件写入成功");
+        return vernew;
     }
 
     //[MenuItem("Tools/复制AB包到LocalPath", false, 1)]

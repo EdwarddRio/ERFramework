@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 553972282
+CRC: 2826205059
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 1d09cc441ccb9b665141655ec21846cb
+    Hash: 4cfca93cd8424b50326328cd2eb1270a
   TypeTreeHash:
     serializedVersion: 2
     Hash: 62c5fdb614490825da7f64ce4498e45c
@@ -34,4 +34,4 @@ Assets:
 - Assets/GameData/Materials/tree.mat
 - Assets/GameData/Modle/tree.FBX
 Dependencies:
-- D:/UnityProjects/ERFramework/Assets/../AssetBundle/Android/shader
+- F:/UnityProjects/ERFramework/Assets/../AssetBundle/Android/shader
