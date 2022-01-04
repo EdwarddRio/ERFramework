@@ -34,6 +34,8 @@ public class BundleEditor
     private static Dictionary<string, List<string>> m_AllPrefabDir = new Dictionary<string, List<string>>();
     //储存所有有效路径
     private static List<string> m_ConfigFil = new List<string>();
+    //写xml配置的字典 key为全路径，value为包名
+    private static Dictionary<string, string> m_ResPathDic = new Dictionary<string, string>();
 
     [MenuItem("Tools/打包", false, 1)]
     public static void Build()
@@ -43,12 +45,13 @@ public class BundleEditor
         m_AllFileAB.Clear();
         m_AllFileDir.Clear();
         m_AllPrefabDir.Clear();
+        m_ResPathDic.Clear();
         ABConfig abConfig = AssetDatabase.LoadAssetAtPath<ABConfig>(ABCONFIGPATH);
         foreach (ABConfig.FileDirABName fileDir in abConfig.m_AllFileDirAB)
         {
             if (m_AllFileDir.ContainsKey(fileDir.ABName))
             {
-                Debug.LogError("AB包配置名字重复，请检查！");
+                Debug.LogError("AB包配置名字重复，请检查！" + fileDir.ABName);
             }
             else
             {
@@ -57,7 +60,7 @@ public class BundleEditor
                 m_ConfigFil.Add(fileDir.Path);
             }
         }
-
+        //所有prefabs
         string[] allStr = AssetDatabase.FindAssets("t:Prefab", abConfig.m_AllPrefabPath.ToArray());
         for (int i = 0; i < allStr.Length; i++)
         {
@@ -92,6 +95,8 @@ public class BundleEditor
             }
         }
 
+        //防止有手动设置的，防一手
+        ClearAllABName();
         foreach (string name in m_AllFileDir.Keys)
         {
             SetABName(name, m_AllFileDir[name]);
@@ -104,12 +109,10 @@ public class BundleEditor
 
         BunildAssetBundle();
 
-        string[] oldABNames = AssetDatabase.GetAllAssetBundleNames();
-        for (int i = 0; i < oldABNames.Length; i++)
-        {
-            AssetDatabase.RemoveAssetBundleName(oldABNames[i], true);
-            EditorUtility.DisplayProgressBar("清除AB包名", "名字：" + oldABNames[i], i * 1.0f / oldABNames.Length);
-        }
+
+
+        //根据所有设置的ab包，判断是否有不用了的ab包存在
+        DeleteAB(m_BundleTargetPath);
 
         //创建版本信息
         VerInfo verInfo = CreateVersionFile();
@@ -117,6 +120,7 @@ public class BundleEditor
         //ab包加密
         EncryptAB(verInfo);
 
+        ClearAllABName();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         EditorUtility.ClearProgressBar();
@@ -146,8 +150,6 @@ public class BundleEditor
     static void BunildAssetBundle()
     {
         string[] allBundles = AssetDatabase.GetAllAssetBundleNames();
-        //key为全路径，value为包名
-        Dictionary<string, string> resPathDic = new Dictionary<string, string>();
         for (int i = 0; i < allBundles.Length; i++)
         {
             string[] allBundlePath = AssetDatabase.GetAssetPathsFromAssetBundle(allBundles[i]);
@@ -156,30 +158,30 @@ public class BundleEditor
                 if (allBundlePath[j].EndsWith(".cs"))
                     continue;
 
-                Debug.Log("此AB包：" + allBundles[i] + "下面包含的资源文件路径：" + allBundlePath[j]);
-                resPathDic.Add(allBundlePath[j], allBundles[i]);
+                //Debug.Log("此AB包：" + allBundles[i] + "下面包含的资源文件路径：" + allBundlePath[j]);
+                m_ResPathDic.Add(allBundlePath[j],allBundles[i]);
             }
         }
 
-        if (!Directory.Exists(m_BundleTargetPath))
+        //生成自己的配置表
+        WriteData(m_ResPathDic);
+
+
+        string targerPath = m_BundleTargetPath;
+
+        if (!Directory.Exists(targerPath))
         {
-            Directory.CreateDirectory(m_BundleTargetPath);
+            Directory.CreateDirectory(targerPath);
         }
 
-        DeleteAB();
-        //生成自己的配置表
-        WriteData(resPathDic);
 
-        AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(m_BundleTargetPath, BuildAssetBundleOptions.ChunkBasedCompression, EditorUserBuildSettings.activeBuildTarget);
+        AssetBundleManifest manifest = BuildPipeline.BuildAssetBundles(targerPath, BuildAssetBundleOptions.ChunkBasedCompression, EditorUserBuildSettings.activeBuildTarget);
 
         if (manifest == null)
         {
-            Debug.LogError("AssetBundle 打包失败！");
+            Debug.LogError("AssetBundle 打包失败！" + targerPath);
         }
-        else
-        {
-            Debug.Log("AssetBundle 打包完毕");
-        }
+
     }
 
     static void WriteData(Dictionary<string, string> resPathDic)
@@ -244,6 +246,15 @@ public class BundleEditor
 
         SetABName("assetbundleconfig", ABBYTEPATH);
     }
+    static void ClearAllABName()
+    {
+        string[] oldABNames = AssetDatabase.GetAllAssetBundleNames();
+        for (int i = 0; i < oldABNames.Length; i++)
+        {
+            AssetDatabase.RemoveAssetBundleName(oldABNames[i], true);
+            EditorUtility.DisplayProgressBar("清除AB包名", "名字：" + oldABNames[i], i * 1.0f / oldABNames.Length);
+        }
+    }
     /// <summary>
     /// 加密ab包  防君子不防小人版
     /// </summary>
@@ -296,7 +307,7 @@ public class BundleEditor
             if (verhash != notEnHash)
             {
                 Debug.Log("加密:同名文件的默认hash不同了，删除并且重新加密：" + name);
-                delFiles.Add(name);
+                //delFiles.Add(name);
                 needEncryFileNames.Add(name);
                 continue;
             }
@@ -354,15 +365,30 @@ public class BundleEditor
             {
                 continue;
             }
+            int delIndex = delFiles.IndexOf(fileName);
+            if (delIndex >= 0)
+            {
+                //删除文件 删除filehash的对应参数
+                GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
+                aBEncryptInfo.filehash.Remove(fileName);
 
-            if (delFiles.IndexOf(fileName) >=0 || needEncryFileNames.IndexOf(fileName) >= 0 )
+                delFiles.RemoveAt(delIndex);
+            }
+            else if (needEncryFileNames.IndexOf(fileName) >= 0)
             {
                 GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
-            }else if (notNeedChangeFiles.IndexOf(fileName) <0)
+            }
+            else if (notNeedChangeFiles.IndexOf(fileName) <0)
             {
                 GameUtility.SafeDeleteFile(encryfiles[encI].FullName);
                 Debug.Log("加密：此文件不在需要删除和需加密列表内，同时也不在不需要改变列表内，说明是多余的：" + fileName);
             }
+        }
+        //防止 delFiles中还有没删除的，说明文件夹内没了 但是配置表内还有
+        for (int i = delFiles.Count-1; i >=0; i--)
+        {
+            aBEncryptInfo.filehash.Remove(delFiles[i]);
+            delFiles.RemoveAt(i);
         }
 
         byte[] secret = new byte[Const.ABEncryptLen];
@@ -409,7 +435,7 @@ public class BundleEditor
 
             File.WriteAllBytes(Path.Combine(m_BundleTargetEncryPath, fileName), newTemp);
 
-            string notEnHash = aBEncryptInfo.filehash[fileName].Split('@')[0];
+            string notEnHash = System.Convert.ToBase64String(VerInfo.osha1.ComputeHash(temp));
             string enHash = System.Convert.ToBase64String(VerInfo.osha1.ComputeHash(newTemp));
 
             aBEncryptInfo.filehash[fileName] = notEnHash + "@" + enHash;
@@ -427,11 +453,12 @@ public class BundleEditor
     /// <summary>
     /// 删除无用AB包
     /// </summary>
-    static void DeleteAB()
+    static void DeleteAB(string checkPath)
     {
         string[] allBundlesName = AssetDatabase.GetAllAssetBundleNames();
-        DirectoryInfo direction = new DirectoryInfo(m_BundleTargetPath);
+        DirectoryInfo direction = new DirectoryInfo(checkPath);
         FileInfo[] files = direction.GetFiles("*", SearchOption.AllDirectories);
+
         for (int i = 0; i < files.Length; i++)
         {
             if (ConatinABName(files[i].Name, allBundlesName) || files[i].Name.EndsWith(".meta") || files[i].Name.EndsWith(".manifest") || files[i].Name.EndsWith("assetbundleconfig"))
@@ -454,12 +481,24 @@ public class BundleEditor
     /// <param name="name"></param>
     /// <param name="strs"></param>
     /// <returns></returns>
-    static bool ConatinABName(string name, string[] strs)
+    static bool ConatinABName(string name, string[] strs,params string[] dicNames)
     {
         for (int i = 0; i < strs.Length; i++)
         {
+
             if (name == strs[i])
+            {
                 return true;
+            }
+
+            for (int ni = 0; ni < dicNames.Length; ni++)
+            {
+                if (dicNames[ni]+ name == strs[i])
+                {
+                    return true;
+                }
+            }
+           
         }
         return false;
     }
